@@ -1,0 +1,20 @@
+{
+  "invenissue": {
+    "issuenme": "proddisnme",
+    "issuelocnme": "premiseswingdesc",
+    "issuesitenme": "kripa11",
+    "issuepermisnme": "kripa11",
+    "issuepermiswingnme": "vkripa11@sencha.com",
+    "issuepermislocnme": "OH1",
+    "issueuom": "OH13",
+    "issuereorderqty": "09/11/2013",
+    "moddatetime": "09/11/2013",
+    "issuedate": "bbbb",
+	"supplier": "bbbb",
+	"bookingtype": "bbbb",
+	"serlot": "bbbb",
+	"bookingserisrt": "bbbb",
+	"bookingserisrt": "bbbb",
+	
+  }
+}

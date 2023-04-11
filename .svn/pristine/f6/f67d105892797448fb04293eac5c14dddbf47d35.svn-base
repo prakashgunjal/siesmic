@@ -1,0 +1,357 @@
+package com.seismic.crm.service;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.seismic.crm.bean.KeyValueMap;
+import com.seismic.crm.exception.SalesOrderNotFound;
+import com.seismic.crm.model.Product;
+import com.seismic.crm.model.ProductCategory;
+import com.seismic.crm.model.ProductSubCategory;
+import com.seismic.crm.model.SalesOrder;
+import com.seismic.crm.model.SalesOrderProductDetail;
+import com.seismic.crm.repository.AccountRepository;
+import com.seismic.crm.repository.ContactRepository;
+import com.seismic.crm.repository.ProductCategoryRepository;
+import com.seismic.crm.repository.ProductRepository;
+import com.seismic.crm.repository.ProductSubCategoryRepository;
+import com.seismic.crm.repository.SalesOrderProductDetailRepository;
+import com.seismic.crm.repository.SalesOrderRepository;
+
+@Service
+public class SalesOrderServiceImpl implements SalesOrderService {
+	@Autowired
+	private HttpServletRequest request;
+	
+	@Autowired
+	private SalesOrderRepository salesOrderRepository;
+
+	@Autowired
+	private SalesOrderProductDetailRepository soProductDetailRepository;
+
+	@Autowired
+	private ProductRepository productRepository;
+
+	@Autowired
+	private AccountRepository accountRepository;
+
+	@Autowired
+	private ContactRepository contactRepository;
+
+	@Autowired
+	private ProductCategoryRepository productCategoryRepository;
+
+	@Autowired
+	private ProductSubCategoryRepository productSubCategoryRepository;
+
+	/*
+	 * @Autowired private AddressRepository addressRepository;
+	 * 
+	 * @Autowired private BankDetailRepository bankDetailRepository;
+	 */
+	
+	
+	@Override
+	@Transactional
+	public List<SalesOrder> getSalesOrderDetails() {
+		/*request.getUserPrincipal().getName();
+		System.out.println("Principal-----------"+request.getUserPrincipal().getName());*/
+		return salesOrderRepository.findAll();
+		// return salesOrderRepository.findByIsActive();
+	}
+	
+	@Override
+	@Transactional
+	public SalesOrder saveSalesOrder(SalesOrder salesOrder) {
+//		SalesOrder createdSalesOrder = salesOrder;
+//		Account account = salesOrder.getAccount();
+//		Contact contact = salesOrder.getContact();
+//
+//		// set Account
+//		Account newAccount = (Account) accountRepository.save(account);
+//		createdSalesOrder.setAccountID(newAccount.getAccountId());
+//
+//		// set Contact
+//		Contact newContact = (Contact) contactRepository.save(contact);
+//		createdSalesOrder.setContactID(newContact.getContactId());
+//
+//		System.out
+//				.println("created SalesOrder implemented.......................");
+
+		return salesOrderRepository.save(salesOrder);
+
+	}
+
+//	@Override
+//	@Transactional
+//	public SalesOrder updateSalesOrder(SalesOrder salesOrder) {
+//		SalesOrder updateSalesOrder = salesOrderRepository.findOne(salesOrder
+//				.getSalesOrderId());
+//
+//		Account account = salesOrder.getAccount();
+//		Contact contact = salesOrder.getContact();
+//
+//		updateSalesOrder.setSalesOrderSalesRep(salesOrder
+//				.getSalesOrderSalesRep());
+//		updateSalesOrder.setNameOfSalesOrder(salesOrder.getNameOfSalesOrder());
+//		updateSalesOrder.setSalesOrderDate(salesOrder.getSalesOrderDate());
+//		updateSalesOrder.setSalesOrderSource(salesOrder.getSalesOrderSource());
+//		updateSalesOrder.setTechnicalContactName(salesOrder
+//				.getTechnicalContactName());
+//		updateSalesOrder.setTechnicalTelephoneNumber(salesOrder
+//				.getTechnicalTelephoneNumber());
+//		updateSalesOrder.setTechnicalEmailId(salesOrder.getTechnicalEmailId());
+//		updateSalesOrder.setInstallationAddress1(salesOrder
+//				.getInstallationAddress1());
+//		updateSalesOrder.setInstallationAddress2(salesOrder
+//				.getInstallationAddress2());
+//		updateSalesOrder.setInstallationAddress3(salesOrder
+//				.getInstallationAddress3());
+//		updateSalesOrder.setInstallationPostCode(salesOrder
+//				.getInstallationPostCode());
+//
+//		Account newAccount = (Account) accountRepository.save(account);
+//		updateSalesOrder.setAccountID(newAccount.getAccountId());
+//
+//		Contact newContact = (Contact) contactRepository.save(contact);
+//		updateSalesOrder.setContactID(newContact.getContactId());
+//
+//
+//		
+//		System.out.println("SalesOrder Data updated............");
+//		return salesOrderRepository.saveAndFlush(updateSalesOrder);
+//	}
+
+//	@Override
+//	public SalesOrder updateSalesOrderRemarks(SalesOrder salesOrder) {
+//		System.out
+//				.println("updateSalesOrderRemarks implemented......................");
+//		SalesOrder updateRemarks = salesOrderRepository.findOne(salesOrder
+//				.getSalesOrderId());
+//		updateRemarks.setRemarks(salesOrder.getRemarks());
+//		return salesOrderRepository.saveAndFlush(salesOrder);
+//	}
+
+	@Override
+	@Transactional
+	public SalesOrder findById(Long salesOrderId) {
+		return salesOrderRepository.findOne(salesOrderId);
+	}
+
+	// This method is for SalesOrderEditForm
+	@Override
+	@Transactional
+	public SalesOrder findBySalesOrderID(Long salesOrderId) {
+		return salesOrderRepository.findOne(salesOrderId);
+	}
+
+		
+	@Override
+	@Transactional(rollbackFor = SalesOrderNotFound.class)
+	public SalesOrder delete(Long salesOrderId) throws SalesOrderNotFound {
+		SalesOrder deletedSalesOrder = salesOrderRepository
+				.findOne(salesOrderId);
+
+		if (deletedSalesOrder == null)
+			throw new SalesOrderNotFound();
+
+		salesOrderRepository.delete(deletedSalesOrder);
+		return deletedSalesOrder;
+	}
+
+	@Override
+	@Transactional
+	public List<SalesOrder> getSalesOrders() {
+		return salesOrderRepository.findAll();
+	}
+
+	@Override
+	@Transactional(rollbackFor = SalesOrderNotFound.class)
+	public SalesOrder update(SalesOrder salesOrder) throws SalesOrderNotFound {
+		SalesOrder updatedSalesOrder = salesOrderRepository.findOne(salesOrder
+				.getSalesOrderId());
+
+		if (updatedSalesOrder == null)
+			throw new SalesOrderNotFound();
+
+		updatedSalesOrder.setNameOfSalesOrder(salesOrder.getNameOfSalesOrder());
+		// updatedSalesOrder.setPriority(salesOrder.getPriority());
+		return updatedSalesOrder;
+	}
+
+	
+
+	@Override
+	@Transactional
+	public List<SalesOrderProductDetail> soProductDetails(SalesOrder salesOrder) {
+		// TODO Auto-generated method stub
+		return soProductDetailRepository.findBySalesOrder(salesOrder);
+		// return soProductDetailRepository.findAll();
+	}
+
+	@Override
+	@Transactional
+	public SalesOrderProductDetail deleteSOProductDetail(Long id) {
+		SalesOrderProductDetail soProductDetail = soProductDetailRepository
+				.findOne(id);
+
+		soProductDetailRepository.delete(soProductDetail);
+		return soProductDetail;
+	}
+
+	@Override
+	@Transactional
+	public SalesOrderProductDetail createSOProductDetails(
+			SalesOrderProductDetail soProductDetail) {
+		return soProductDetailRepository.saveAndFlush(soProductDetail);
+	}
+
+	@Override
+	@Transactional
+	public SalesOrderProductDetail updateSOProductDetails(
+			SalesOrderProductDetail soProductDetail) {
+		return soProductDetailRepository.saveAndFlush(soProductDetail);
+	}
+
+	@Override
+	@Transactional
+	public SalesOrderProductDetail findBySOProductDetailId(
+			Long soProductDetailId) {
+		return soProductDetailRepository.findOne(soProductDetailId);
+	}
+
+	@Override
+	@Transactional
+	public List<Product> products() {
+		return productRepository.findAll();
+	}
+
+	@Override
+	public List<SalesOrderProductDetail> profServices(SalesOrder salesOrder) {
+		ProductCategory category = productCategoryRepository
+				.findByProductCategory("Professional Services");
+		// return
+		// soProductDetailRepository.findBySalesOrderAndProductCategory(salesOrder,
+		// category);
+		return null;
+	}
+
+	@Override
+	public SalesOrderProductDetail createProfService(
+			SalesOrderProductDetail soProductDetail) {
+		ProductCategory category = productCategoryRepository
+				.findByProductCategory("Professional Services");
+		// soProductDetail.setProductCategory(category);
+		return soProductDetailRepository.saveAndFlush(soProductDetail);
+	}
+
+	@Override
+	public List<SalesOrderProductDetail> maintenanceProducts(
+			SalesOrder salesOrder) {
+		ProductCategory category = productCategoryRepository
+				.findByProductCategory("Maintenance");
+		// return
+		// soProductDetailRepository.findBySalesOrderAndProductCategory(salesOrder,
+		// category);
+		return null;
+	}
+
+	@Override
+	public SalesOrderProductDetail createMaintenanceProduct(
+			SalesOrderProductDetail soProductDetail) {
+		ProductCategory category = productCategoryRepository
+				.findByProductCategory("Maintenance");
+		// soProductDetail.setProductCategory(category);
+		return soProductDetailRepository.saveAndFlush(soProductDetail);
+	}
+
+	@Override
+	@Transactional
+	public List<ProductCategory> productCategory() {
+		return productCategoryRepository.findAll();
+	}
+
+	@Override
+	@Transactional
+	public List<ProductSubCategory> getProductSubCategory(Long categoryId) {
+		ProductCategory productCategory = productCategoryRepository
+				.findOne(categoryId);
+		return productSubCategoryRepository
+				.findByProductCategory(productCategory);
+	}
+
+	@Override
+	public List<SalesOrderProductDetail> orderForm(SalesOrder salesOrder) {
+		ProductCategory category = productCategoryRepository
+				.findByProductCategory("");
+		return soProductDetailRepository.findBySalesOrderAndProductCategory(
+				salesOrder, category);
+	}
+
+//	@Override
+//	public List<SalesOrderProductDetail> preSalesForm(SalesOrder salesOrder) {
+//		ProductCategory category = productCategoryRepository
+//				.findByProductCategory("");
+//		return soProductDetailRepository.findBySalesOrderAndProductCategory(
+//				salesOrder, category);
+//	}
+
+	@Override
+	public SalesOrderProductDetail createOrderForm(
+			SalesOrderProductDetail soProductDetail) {
+		/*ProductCategory category = productCategoryRepository.findByProductCategory(productCategory);
+				.findByProductCategory("");
+		soProductDetail.setProductCategory(category);*/
+		return soProductDetailRepository.saveAndFlush(soProductDetail);
+	}
+
+	@Override
+	public List<KeyValueMap> getSalesFormForAccountId(Long accountId) {
+		
+		return salesOrderRepository.getSalesFormForAccountId(accountId);
+	}
+
+//	@Override
+//	public SalesOrderProductDetail savePresalesForm(
+//			SalesOrderProductDetail soProductDetail) {
+//		// soProductDetail.setRemarks(remarks);
+//		return soProductDetailRepository.save(soProductDetail);
+//
+//	}
+
+
+	/*
+	 * @Override
+	 * 
+	 * @Transactional public Product deleteProductDetails(Long id) { Product
+	 * product = productRepository.findOne(id);
+	 * productRepository.delete(product); return product; }
+	 */
+
+	/*
+	 * @Override
+	 * 
+	 * @Transactional public Product createProductDetails(Product product) {
+	 * return productRepository.saveAndFlush(product); }
+	 */
+
+	/*
+	 * @Override
+	 * 
+	 * @Transactional public Product updateProductDetails(Product product) {
+	 * return productRepository.saveAndFlush(product); }
+	 */
+
+	/*
+	 * @Override
+	 * 
+	 * @Transactional public Product findByProductID(Long productID) { return
+	 * productRepository.findOne(productID); }
+	 */
+
+}

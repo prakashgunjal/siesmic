@@ -1,0 +1,49 @@
+package com.seismic.crm.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.seismic.crm.model.Product;
+import com.seismic.crm.model.ProductCategory;
+import com.seismic.crm.model.Question;
+import com.seismic.crm.model.SalesOrder;
+import com.seismic.crm.model.SoSpecQuestion;
+import com.seismic.crm.model.SpecificationMap;
+import com.seismic.crm.model.SupplierProduct;
+import com.seismic.crm.model.Task;
+
+public interface SoSpecQuestionRepository extends JpaRepository<SoSpecQuestion, Long> {
+	@Query("SELECT q FROM SoSpecQuestion q "
+			+ "WHERE q.productCategory = ?1 "
+			+ "ORDER BY q.questionSeq ASC")
+	List<SoSpecQuestion> specQuestions(ProductCategory productCat);
+
+//	@Query("SELECT q FROM SoSpecQuestion q LEFT JOIN FETCH q.soSpecQuestionResponses qr "
+//			+ "LEFT JOIN FETCH qr.soSpecTaskResponses tr "
+//			+ "LEFT JOIN FETCH tr.soSpecTask t "
+//			+ "LEFT JOIN FETCH tr.sfSpecActivityResponses ar "
+//			+ "LEFT JOIN FETCH ar.sfSpecActivity a "
+//			+ "WHERE q.productCategory = ?3 OR "
+//			+ "(qr.salesOrder = ?1 AND qr.product = ?2) "
+//			+ "ORDER BY q.questionSeq ASC, t.taskSeq ASC, a.activitySeq ASC")
+//	List<SoSpecQuestion> specResponses(SalesOrder so, Product product, ProductCategory productCat);
+
+	@Query("SELECT q FROM SoSpecQuestion q JOIN FETCH q.soSpecQuestionResponses qr "
+			+ "LEFT JOIN FETCH qr.soSpecTaskResponses tr "
+			+ "LEFT JOIN FETCH tr.soSpecTask t "
+			+ "LEFT JOIN FETCH tr.sfSpecActivityResponses ar "
+			+ "LEFT JOIN FETCH ar.sfSpecActivity a "
+			+ "WHERE q.productCategory = ?3 AND "
+			+ "qr.salesOrder = ?1 AND qr.product = ?2 "
+			+ "ORDER BY q.questionSeq ASC, t.taskSeq ASC, a.activitySeq ASC")
+	List<SoSpecQuestion> specResponses(SalesOrder so, Product product, ProductCategory productCat);
+
+	@Query("SELECT q FROM SoSpecQuestion q LEFT JOIN FETCH q.soSpecQuestionResponses qr "
+			+ "LEFT JOIN FETCH qr.soSpecTaskResponses tr LEFT JOIN FETCH tr.soSpecTask t "
+			+ "WHERE q = ?3 AND ((qr = null) OR (qr.salesOrder = ?1 AND qr.product = ?2)) "
+			+ "ORDER BY  q.questionSeq ASC, t.taskSeq ASC")
+	SoSpecQuestion specQuestionWithDeps(SalesOrder so, Product product, SoSpecQuestion question);
+
+}

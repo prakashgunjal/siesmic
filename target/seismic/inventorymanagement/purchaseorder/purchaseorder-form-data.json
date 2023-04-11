@@ -1,0 +1,26 @@
+{
+  "formpurorder": {
+    "purordnum": "proddisnme",
+    "purorddate": "premiseswingdesc",
+    "purordcontrnme": "kripa11",
+    "porordstatus": "kripa11",
+    "porordprior": "vkripa11@sencha.com",
+    "purordsalrep": "OH1",
+    "purordbroker": "OH13",
+    "purordvalidfrm": "09/11/2013",
+    "purordexpon": "09/11/2013",
+    "purordcanon": "bbbb",
+	"purordcloson": "bbbb",
+	"purordsupp": "bbbb",
+	"purordexpdeldate": "bbbb",
+	"purordshippmeth": "bbbb",
+	"purordshippins": "bbbb",
+	"purordordcarr": "bbbb",
+	"purordtracknum": "bbbb",
+	"receserisrt": "bbbb",
+	"purordpayterm": "bbbb",
+	"purordordcurre": "bbbb",
+	"purordfreter": "bbbb",
+	
+  }
+}

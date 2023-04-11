@@ -1,0 +1,45 @@
+#[SeismicSystem]
+
+CurrencyName  = US$
+DateFormat  =  dd-mm-yyyy 
+TimeZone  = IST
+IdSubstring=ASPL
+
+#[DB Server]
+
+jdbc.driverClassName = com.microsoft.sqlserver.jdbc.SQLServerDriver
+jdbc.url = jdbc:sqlserver://192.168.1.113:1433;databaseName=SEISMIC_CRM_DEV
+jdbc.username = sa
+jdbc.password = AsPlblr1
+
+
+#[DocumentServer]
+
+mongodb.host  = 192.168.1.113
+mongodb.dbname = SeismicDocDb
+mongodb.port     = 27017
+mongodb.username    = aspl
+mongodb.password = pass
+
+#[MailServer]
+
+MailServerType= SMTP
+MailServer=smtp.aligned-system.com
+MailAlertId =  Seismic-CRM-Alerts@aligned-system.com
+MailAlertPwd =password
+
+#[Directory Server]
+
+DirectoryServerIP = 192.168.1.113
+DirectoryServerPort = 389
+DirectoryServerUserId  = admin
+DirectoryServerPwd = password
+DirectoryServerDomainPart1 = aspl
+DirectoryServerDomainPart2 = com
+
+#[Report Server]
+ReportServerIP= 192.168.113
+ReportServerDb=SeismicDb
+ReportServerPort=1433
+ReportServerDbUser=
+ReportServerDbPwd

@@ -1,0 +1,77 @@
+package com.seismic.crm.service;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.seismic.crm.model.Account;
+import com.seismic.crm.model.Contact;
+import com.seismic.crm.model.Quote;
+import com.seismic.crm.model.SalesOrder;
+import com.seismic.crm.repository.AccountRepository;
+import com.seismic.crm.repository.QuoteRepository;
+import com.seismic.crm.repository.SalesOrderRepository;
+
+@Service
+public class QuoteServiceImpl implements QuoteService {
+
+	@Autowired
+	private QuoteRepository quoteRepository;
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	@Autowired
+	private SalesOrderRepository salesOrderRepository;
+	
+	@Override
+	public List<Quote> getQuoteDetails() {		
+		return null;
+	}
+	
+	@Override
+	@Transactional
+	public List<Quote> getQuoteDetailsByAccount(Long accountId) {	
+		Account account = accountRepository.findOne(accountId);	    		 		
+		return  quoteRepository.findByAccount(account);   
+	}
+     
+	@Override
+	@Transactional
+	public Quote saveQuote(Quote quote) {
+		return quoteRepository.save(quote);		
+	}
+
+	@Override
+	@Transactional
+	public Quote findById(Long quoteId) {
+		return quoteRepository.findOne(quoteId);		
+	}
+
+	@Override
+	@Transactional
+	public List<SalesOrder> getSalesFormListByQuote(Long quoteId) {			
+		Quote quote = quoteRepository.findOne(quoteId);	 	
+		return  salesOrderRepository.findByQuote(quote);   				
+	}  
+	
+	 
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

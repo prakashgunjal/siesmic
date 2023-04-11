@@ -1,0 +1,593 @@
+ var productDDLSource;
+ var productDDLAdapter;
+ var editFlag = false;
+ 
+         $(document).ready(function () {
+            var theme = getDemoTheme();           
+            var source =
+            {
+                datatype: "json", 
+                url : basePath+'salesOrder/'+salesOrderId +'/orderForm.json',		
+                datafields:
+                [                     
+                    { name: 'salesOrderProductDetailId', type: 'long' },  
+                    { name: 'productCategoryId',map:'product>productCategory>productCategoryId', type: 'long' }, 
+					{ name: 'productCategory',map:'product>productCategory>productCategory', type: 'string' },	
+														
+				    { name: 'productSubCategoryId',map : 'product>productSubCategory>productSubCategoryId', type: 'string' }, 
+					{ name: 'productSubCategoryName',map:'product>productSubCategory>productSubCategoryName', type: 'string' },
+					
+					{ name: 'productId',map : 'product>productId', type: 'long' },
+					{ name: 'productName', map:'product>productName', type: 'string' },		
+					
+					{ name: 'salesOrderProductQty', type: 'string' },
+					{ name: 'salesOrderProductUom', type: 'string' },				
+					{ name: 'unitCost', type: 'decimal' },
+					{ name: 'productTotal', type: 'decimal' },
+					{ name: 'salesOrderProductDiscount', type: 'string' }	
+                                              
+                ],id:'salesOrderProductDetailId',
+                updaterow: function (rowid, rowdata, commit) {
+                    // synchronize with the server - send update command   
+                    commit(true);
+                }
+            };
+
+             var dataAdapter = new $.jqx.dataAdapter(source);
+             var columnCheckBox = null;
+             var updatingCheckState = false;
+                         
+             
+
+             // initialize jqxGrid. Disable the built-in selection.
+            $("#salesordergrid").jqxGrid(
+            {
+            	width: '99.8%',
+                source: dataAdapter,
+                theme: theme,
+                showfilterrow: true,
+                filterable: true,
+                pageable: true,
+                sortable: true,
+                columnsresize: true,
+                autoheight: true,
+                altrows: true,
+                showstatusbar: true,
+                columns: [                
+                                  
+                  { text: 'Product Category', editable: false, datafield:'productCategoryId', displayfield: 'productCategory', width: 170 },
+                  { text: 'Product Sub Category', editable: false, datafield:'productSubCategoryId', displayfield: 'productSubCategoryName', width: 180 },
+                  { text: 'Product', editable: false, datafield:'productId', displayfield: 'productName' },                 
+				  { text: 'Qty', editable: false, datafield: 'salesOrderProductQty' , width: 80},
+                  { text: 'UOM', editable: false, datafield: 'salesOrderProductUom' , width: 100},
+                  { text: 'Unit Cost', editable: false, datafield: 'unitCost' , width: 100},
+                  { text: 'Discount', editable: true, datafield: 'salesOrderProductDiscount', width: '100px'},
+                  { text: 'Total Amount', editable: false, datafield: 'productTotal'}
+				 				  // productTotal, salesOrderProductDiscount, unitCost, salesOrderProductQty, salesOrderProductDetailId 
+               ],
+               renderstatusbar: function (statusbar) {
+            	// appends buttons to the status bar.
+                   var container = $("<div style='overflow: hidden; position: relative; margin: 5px;'></div>");
+                   var addButton = $("<div style='float: left; margin-left: 5px;'><img style='position: relative; margin-top: 2px;' src='../../image/add.png'/><span style='margin-left: 4px; position: relative; top: 2px;'>Add</span></div>");
+                   /*var deleteButton = $("<div style='float: left; margin-left: 5px;'><img style='position: relative; margin-top: 2px;' src='../../image/close.png'/><span style='margin-left: 4px; position: relative; top: 2px;'>Delete</span></div>");*/
+                   var editButton = $("<div style='float: left; margin-left: 5px;'><img style='position: relative; margin-top: 2px;' src='../../image/miniedit.png'/><span style='margin-left: 4px; position: relative; top: 2px;'>Edit</span></div>");
+                   
+                   container.append(addButton);
+                   /*container.append(deleteButton);*/
+                   container.append(editButton);
+         
+                   statusbar.append(container);
+                   addButton.jqxButton({ theme: theme, width: 60, height: 20 });
+                   /*deleteButton.jqxButton({ theme: theme, width: 65, height: 20 });*/
+                   editButton.jqxButton({ theme: theme, width: 65, height: 20 });
+                   
+                   // add new row.
+                   addButton.click(function (event) { 
+                	   
+                	   editFlag=false;                	
+                       var offset = $("#salesordergrid").offset();
+                       $("#salesorderProductWindow").jqxWindow('open');
+                       $("#salesorderProductWindow").jqxWindow('move', offset.left + 30, offset.top + 30);
+
+                       refreshDialogDDLs(-1,-1,-1);
+                  		$('#SOQuantity').jqxNumberInput('clear');
+                  		$('#SOUnitCost').jqxNumberInput('clear');
+                  		$('#SOTotalAmount').jqxNumberInput('clear');
+                  		$('#SODiscount').jqxNumberInput('clear');
+                	   
+                   });
+                   
+                   // delete selected row.
+                   /*deleteButton.click(function (event) {
+                       var selectedrowindex = $("#leadgrid").jqxGrid('getselectedrowindex');
+                       var rowscount = $("#leadgrid").jqxGrid('getdatainformation').rowscount;
+                       if (selectedrowindex >= 0 && selectedrowindex < rowscount) {
+                           var id = $("#leadgrid").jqxGrid('getrowid', selectedrowindex);
+                           $("#leadgrid").jqxGrid('deleterow', id);
+                       }
+                   });*/
+                   editButton.click(function (event) {
+                	   var rowindex = $("#salesordergrid").jqxGrid('getselectedrowindex');
+                	   var dataRecord = $("#salesordergrid").jqxGrid('getrowdata', rowindex);                 	  
+                	   if(dataRecord!=null){
+                		   openDialogForEdit();
+                  	   }else{
+                  		 alert("Please select Record for Edit");
+                   	   }                 	                   	
+                   });
+               },
+            });
+
+            var updatePageState = function (pagenum) {
+                var datainfo = $("#salesordergrid").jqxGrid('getdatainformation');
+                var pagenum = datainfo.paginginformation.pagenum;
+                var pagesize = datainfo.paginginformation.pagesize;
+                var startrow = pagenum * pagesize;
+                // select the rows on the page.
+                $("#salesordergrid").jqxGrid('beginupdate');
+                var checkedItemsCount = 0;
+                for (var i = startrow; i < startrow + pagesize; i++) {
+                    var boundindex = $("#salesordergrid").jqxGrid('getrowboundindex', i);
+                    var value = $("#salesordergrid").jqxGrid('getcellvalue', boundindex, 'available');
+                    if (value) checkedItemsCount++;
+                    if (value) {
+                        $("#salesordergrid").jqxGrid('selectrow', boundindex);
+                    }
+                    else {
+                        $("#salesordergrid").jqxGrid('unselectrow', boundindex);
+                    }
+                }
+
+                $("#salesordergrid").jqxGrid('endupdate');
+                if (checkedItemsCount == pagesize) {
+                  //  columnCheckBox.jqxCheckBox({ checked: true });
+                }
+                else if (checkedItemsCount == 0) {
+                  //  columnCheckBox.jqxCheckBox({ checked: false });
+                }
+                else {
+                  //  columnCheckBox.jqxCheckBox({ checked: null });
+                }
+            }
+
+            // update the selection after sort.
+            $("#salesordergrid").on('sort', function (event) {
+                updatePageState();
+            });
+
+             // update the selection after page change.
+            $("#salesordergrid").on('pagechanged', function (event) {
+                 updatePageState();
+             });
+
+             // select or unselect rows when a checkbox is checked or unchecked. 
+             $("#salesordergrid").on('cellvaluechanged', function (event) {
+                 if (event.args.value) {
+                     $("#salesordergrid").jqxGrid('selectrow', event.args.rowindex);
+                 }
+                 else {
+                     $("#salesordergrid").jqxGrid('unselectrow', event.args.rowindex);
+                 }
+             
+                 if (columnCheckBox) {
+                     var datainfo = $("#salesordergrid").jqxGrid('getdatainformation');
+                     var pagesize = datainfo.paginginformation.pagesize;
+                     var pagenum = datainfo.paginginformation.pagenum;
+                     var selectedRows = $("#salesordergrid").jqxGrid('getselectedrowindexes');
+                     var state = false;
+                     var count = 0;
+                     $.each(selectedRows, function () {
+                         if (pagenum * pagesize <= this && this < pagenum * pagesize + pagesize) {
+                             count++;
+                         }
+                     });
+
+                     if (count != 0) state = null;
+                     if (count == pagesize) state = true;
+                     if (count == 0) state = false;
+                     
+                     updatingCheckState = true;
+                     // $(columnCheckBox).jqxCheckBox({ checked: state });
+                     updatingCheckState = false;
+                 }
+             });
+             
+             
+          // create context menu
+             var contextMenu = $("#salesorderProdMenu").jqxMenu({ width: 250, height: 30, autoOpenPopup: false, mode: 'popup', theme: theme });
+
+             $("#salesordergrid").on('contextmenu', function () {
+                 return false;
+             });
+
+             // handle context menu clicks.
+             $("#salesorderProdMenu").on('itemclick', function (event) { 
+            	               
+            	   openDialogForEdit();               	                     
+             });
+
+             $("#salesordergrid").on('rowclick', function (event) {
+                 if (event.args.rightclick) {
+                     $("#salesordergrid").jqxGrid('selectrow', event.args.rowindex);
+                     var scrollTop = $(window).scrollTop();
+                     var scrollLeft = $(window).scrollLeft();
+                     contextMenu.jqxMenu('open', parseInt(event.args.originalEvent.clientX) + 5 + scrollLeft, parseInt(event.args.originalEvent.clientY) + 5 + scrollTop);
+
+                     return false;
+                 }
+             });
+
+             function openDialogForEdit(){
+              	editFlag=true;
+                  var rowIndex = $("#salesordergrid").jqxGrid('selectedrowindex');
+                  if(rowIndex < 0){
+                  	return;
+                  }                 
+                 var row = $("#salesordergrid").jqxGrid('getrowdata', rowIndex);
+                                                                                            
+                 var offset = $("#salesordergrid").offset();
+                 $("#salesorderProductWindow").jqxWindow('open');
+                 $("#salesorderProductWindow").jqxWindow('move', offset.left + 30, offset.top + 30);
+          		 $("#SOQuantity").val(row.salesOrderProductQty);   // productTotal, salesOrderProductDiscount, unitCost, salesOrderProductQty, salesOrderProductDetailId 
+          		 $("#SOUnitCost").val(row.unitCost);
+          		 $("#SOTotalAmount").val(row.productTotal);
+          		 $("#SODiscount").val(row.salesOrderProductDiscount );	
+          		
+          		var prodCatId = $("#salesordergrid").jqxGrid('getcellvalue', row, "productCategoryId");
+          		var prodSubCatId = $("#salesordergrid").jqxGrid('getcellvalue', row, "productSubCategoryId");
+          		var prodId = $("#salesordergrid").jqxGrid('getcellvalue', row, "productId");
+          	           	    
+          		refreshDialogDDLs(prodCatId, prodSubCatId, prodId); 	
+          	}
+
+           // create jqxWindow.
+              $("#salesorderProductWindow").jqxWindow({ resizable: true, isModal:true, modalOpacity:0.7, theme: 'shinyblack', autoOpen: false, draggable: false,width: 800, maxWidth: 1200, height:320, maxHeight:800 });
+              $("#salesorderFormPanel").jqxPanel({ width: 780, height: 230, sizeMode:'fixed'});
+              $("#SOProdSave").jqxButton({ theme: theme, width: '100' });
+              $("#SOProdCancel").jqxButton({ theme: theme, width: '100' });   
+             
+//            Product Form pre-Load Dropdown lists for Product Category, Product SubCategory, Product and  Unit Of Measure
+ 	          	
+//            Product Cancel Button On Click Event
+                $('#SOProdCancel').click(function () {
+          		$('#salesorderProductWindow').jqxWindow('close');
+          	   });
+             // Product Save Event
+                $('#SOProdSave').click(function () {
+               	 
+               	 if(!$('#salesorderFormPanel').jqxValidator('validate')){
+             			return;
+             	 }; 
+              
+                var productForm = new Object();
+       			 
+            		var pcItem = $('#productCategoryDropdownlist').jqxDropDownList('getSelectedItem');	
+            		productForm.productCategoryId = pcItem.value;
+            	
+            		var pscItem = $('#productSubCategoryDropdownlist').jqxDropDownList('getSelectedItem');
+            		productForm.productSubCategoryId = pscItem.value;
+            		
+            		var prodItem = $('#productDropdownlist').jqxDropDownList('getSelectedItem');		
+            		productForm.productId = prodItem.value;		        		
+            		
+            		productForm.unitOfMeasure = $('#SOUnitOfMeasure').val();		
+            		productForm.SOQuantity = $('#SOQuantity').val();
+            		productForm.SOUnitCost = $('#SOUnitCost').val();
+            		productForm.SOTotalAmount = $('#SOTotalAmount').val();  
+            		productForm.SODiscount = $('#SODiscount').val();           		
+            		productForm.editFlag = editFlag ;
+   	            	            
+            		if(editFlag == false){
+         	    $.ajax({            	               			         	    	
+         	    	  url:  basePath + "salesOrder/" +salesOrderId + "/createEditSalesOrderProductDetails",           	    	 
+           			  type: 'POST',
+           			  data: JSON.stringify(productForm),
+           			  contentType: 'application/json; charset=utf-8',
+           			  dataType: 'json',
+           			  async:false
+           		  }).done(function( data ) {
+           	          $('#salesorderProductWindow').jqxWindow('close');
+           			  dataAdapter.dataBind(); 
+           		  });
+            		}else{          			
+           			var rowindex = $('#salesordergrid').jqxGrid('getselectedrowindex');
+           			var data = $('#salesordergrid').jqxGrid('getrowdata', rowindex);
+           			var soProdId = data.salesOrderProductDetailId;             			
+           			productForm.productDetailId = soProdId;           			          			
+                $.ajax({               	           
+            		  url:  basePath + "salesOrder/" +salesOrderId + "/createEditSalesOrderProductDetails",  
+           			  type: 'POST',
+           			  data: JSON.stringify(productForm),
+           			  contentType: 'application/json; charset=utf-8',
+           			  dataType: 'json',
+           			  async:false
+           		     }).done(function( data ) {
+           			  $('#salesorderProductWindow').jqxWindow('close');
+           			  dataAdapter.dataBind();
+           		    });          	          		
+            		}         		           		
+                });
+                
+//              Product SAVE Validation
+   			   $('#salesorderFormPanel').jqxValidator( { hintType : 'label', rules: [
+   						{ input: '#productCategoryDropdownlist', message: 'Product Category is not selected.',
+   						    action: 'select', rule: function (input) {
+   						    	return ($("#productCategoryDropdownlist").jqxDropDownList('selectedIndex') >= 0)
+   						    } 
+   						},
+   						{ input: '#productSubCategoryDropdownlist', message: 'Product Sub-Category is not selected.',
+   						    action: 'select', rule: function (input) {
+   						    		return ($("#productSubCategoryDropdownlist").jqxDropDownList('selectedIndex') >= 0)
+   						    	} 
+   						 },
+   						{ input: '#productDropdownlist', message: 'Product is not selected.',
+   						    action: 'select', rule: function (input) {
+   						    	return ($("#productDropdownlist").jqxDropDownList('selectedIndex') >= 0)
+   						    }
+   						 }
+   						] 
+   			    } );
+   			 
+ 	            var productCategoryDDLSource =
+ 	            {
+ 	                datatype: "json",
+ 	                datafields: [
+ 	                             { name: 'productCategory', type: 'string' },
+ 	                             { name: 'productCategoryId'}
+ 	                ],
+ 	                url:basePath + 'salesOrder/productCategories.json'
+ 	            };
+ 	            var productCategoryDDLAdapter = new $.jqx.dataAdapter(productCategoryDDLSource, { autoBind: true, async: false, 
+ 	            	loadComplete : function(data) {
+ 	            		source.productCategories = data;
+ 	                }
+ 	        	});
+ 	            var produtSubCategoryUrl = basePath + 'salesOrder/emptyArray.json';
+ 	            var productSubCategoryDDLSource =
+ 	            {
+ 	                datatype: "json",
+ 	                datafields: [
+ 	                             { name: 'productSubCategoryName', type: 'string' },
+ 	                             { name: 'productSubCategoryId' }
+ 	                ], 
+ 	                
+ 	                url: produtSubCategoryUrl
+ 	            };
+ 	            var productsubCategoryDDLAdapter = new $.jqx.dataAdapter(productSubCategoryDDLSource, { autoBind: false, async: false, 
+ 	            	loadComplete : function(data) {
+ 	            		source.productSubCategories = data;
+ 	                },
+ 	         	});
+ 	           
+ 	            productUrl = basePath + 'salesOrder/emptyArray.json';
+ 	            var productDDLSource =
+ 	            {
+ 	                datatype: "json",
+ 	                datafields: [
+ 	                     { name: 'productName', type: 'string' },
+ 	                     { name: 'productId' },
+ 	                     {name: 'retailRate'}
+ 	                ],
+// 	                id: 'productId',
+ 	                url: productUrl
+ 	                	
+ 	            };
+ 	            var productDDLAdapter = new $.jqx.dataAdapter(productDDLSource, { autoBind: false, async: false, 
+ 	            	loadComplete : function(data) {
+ 	        			source.products = data;
+ 	                }
+ 	        	});
+ 	             
+ 	            $('#productDropdownlist').bind('select', function (event) {
+                  var args = event.args;
+                  var item = $('#productDropdownlist').jqxDropDownList('getItem', args.index);
+                 
+              });
+// 	Product Form Fields/Lables
+ 			 
+           $("#productCategoryDropdownlist").jqxDropDownList({
+          	 autoDropDownHeight: true, 
+          	 width: 200, 
+          	 height: 23, 
+          	 theme: theme, 
+          	 displayMember : 'productCategory',
+       		 valueMember : 'productCategoryId',
+       		 source : productCategoryDDLAdapter,
+       		 selectedIndex : 'productCategoryId'	
+           });
+           $("#productSubCategoryDropdownlist").jqxDropDownList({
+          	 autoDropDownHeight: true,
+          	 width: 200,
+          	 height: 23,
+          	 theme: theme,
+          	 displayMember : 'productSubCategoryName',
+       		 valueMember : 'productSubCategoryId',
+       		 source : productsubCategoryDDLAdapter,
+       		 selectedIndex : 'productSubCategoryId'
+           });
+           $("#productDropdownlist").jqxDropDownList({ 
+          	 autoDropDownHeight: true,
+          	 width: 200,
+          	 height: 23,
+          	 theme: theme,
+          	 displayMember : 'productName',
+       		valueMember : 'productId',
+       		source : productDDLAdapter,
+       		selectedIndex : 'productId'
+           });
+         
+          // $("#opporSerialized").jqxCheckBox({width: 16, height: 16, });
+           $("#SOUnitOfMeasure").jqxInput({ width: '60px', height: '25px'});
+           $("#SOQuantity").jqxNumberInput({ width: '130px', height: '25px', digits:8, decimalDigits: 2, inputMode: 'simple',min: 0, spinButtons: false });
+           $("#SOUnitCost").jqxNumberInput({ width: '200px', height: '25px', digits:8, decimalDigits: 2, inputMode: 'simple',min: 0, spinButtons: false, symbol: '£' });
+           $("#SODiscount").jqxNumberInput({ width: '200px', height: '25px', digits:2, decimalDigits: 2, inputMode: 'simple',min: 0, spinButtons: false,decimalSeparator: "", decimalDigits: 0,symbol: '%',symbolPosition: 'right' });
+           $("#SOTotalAmount").jqxNumberInput({ width: '200px', height: '25px', disabled: true, digits:8, decimalDigits: 2, inputMode: 'simple',symbol: '£' });
+                    
+           $( "#SOQuantity" ).keyup(function(event) {
+          	 var SOQuantity;
+          	 var SOUnitCost;
+          	 var SODiscount;
+          	  SOQuantity=$('#SOQuantity').val();
+          	  SOUnitCost=$('#SOUnitCost').val();
+          	  SODiscount=$('#SODiscount').val();
+          	 if(SOUnitCost!=0 && SODiscount!=0){
+          		 
+          		 var totalAmt = SOQuantity*SOUnitCost;
+          		 var withDiscountTotalAmt= totalAmt*(100-SODiscount)/100;
+          		 
+          		 $("#SOTotalAmount").val(withDiscountTotalAmt);
+          	 }else if(SOUnitCost!=0 && SOUnitCost==0){
+
+          		 var totalAmt = SOQuantity*SOUnitCost;
+          		 
+          		 $("#SOTotalAmount").val(totalAmt);
+          	 
+          	 }
+          	 });
+           
+           $( "#SOUnitCost" ).keyup(function(event) {
+          	 var SOQuantity;
+          	 var SOUnitCost;
+          	 var SODiscount;
+          	   SOQuantity=$('#SOQuantity').val();
+          	   SOUnitCost=$('#SOUnitCost').val();
+          	   SODiscount=$('#SODiscount').val();
+          	 if(SOQuantity!=0 && SODiscount!=0){
+          		 
+          		 var totalAmt = SOQuantity*SOUnitCost;
+          		 var withDiscountTotalAmt= totalAmt*(100-SODiscount)/100;
+          		 
+          		 $("#SOTotalAmount").val(withDiscountTotalAmt);
+          	 }else if(SOQuantity!=0 && SODiscount==0){
+
+          		 var totalAmt = SOQuantity*SOUnitCost;
+          		 
+          		 $("#SOTotalAmount").val(totalAmt);
+          	 
+          	 }
+         	 });
+           
+           $( "#SODiscount" ).keyup(function(event) {
+          	 var SOQuantity;
+          	 var SOUnitCost;
+          	 var SODiscount;
+          	   SOQuantity=$('#SOQuantity').val();
+          	   SOUnitCost=$('#SOUnitCost').val();
+          	   SODiscount=$('#SODiscount').val();
+          	 if(SOQuantity!=0 && SOUnitCost!=0){
+          		 
+          		 var totalAmt = SOQuantity*SOUnitCost;
+          		 var withDiscountTotalAmt= totalAmt*(100-SODiscount)/100;
+          		 
+          		 $("#SOTotalAmount").val(withDiscountTotalAmt);
+          	 }else if(SOQuantity!=0 && SOUnitCost==0){
+
+          		 var totalAmt = SOQuantity*SOUnitCost;
+          		 
+          		 $("#SOTotalAmount").val(totalAmt);
+          	 
+          	 }
+         	 });
+           
+ //Product dependency dropdown select events
+           $("#productCategoryDropdownlist").on('select', function (event) {
+        		var args = event.args;
+        		var item = $('#productCategoryDropdownlist').jqxDropDownList('getItem', args.index);
+        		
+        		$("#productSubCategoryDropdownlist").jqxDropDownList('clearSelection');
+        		$("#productDropdownlist").jqxDropDownList('clearSelection');
+        		var pcId = item.value;
+        		if(pcId > 0){
+        			productSubCategoryDDLSource.url = basePath +'salesOrder/productSubCategories.json?id=' + pcId;
+        			productsubCategoryDDLAdapter.dataBind();
+        			productDDLSource.url = basePath +'salesOrder/emptyArray.json';
+        			productDDLAdapter.dataBind();
+        		}
+        		
+        	});
+            
+            $("#productSubCategoryDropdownlist").on('select', function (event) {
+        		var args = event.args;
+        		var item = $('#productSubCategoryDropdownlist').jqxDropDownList('getItem', args.index);
+        		
+        		$("#productDropdownlist").jqxDropDownList('clearSelection');
+        		var pscId = item.value;
+        		if(pscId > 0){
+        			 productDDLSource.url = basePath +'salesOrder/productsByProdSubCat.json?productSubCatId=' + pscId;
+        	    	 productDDLAdapter.dataBind();
+        		}
+        	});
+        	$("#productDropdownlist").on('select', function (event) {
+        		var args = event.args;
+        		var item = $('#productDropdownlist').jqxDropDownList('getItem', args.index);
+        			var prodId = item.value;
+        			var retailRate = item.originalItem.retailRate;
+        			$("#SOUnitCost").val(retailRate);
+        	});
+        	
+        	function refreshDialogDDLs(prodCatId, prodSubCatId, prodId){
+      		$("#productCategoryDropdownlist").jqxDropDownList('clearSelection');
+      		$("#productSubCategoryDropdownlist").jqxDropDownList('clearSelection');
+      		$("#productDropdownlist").jqxDropDownList('clearSelection');
+      		if(prodCatId && (prodCatId > 0)){
+      			productSubCategoryDDLSource.url = basePath + 'salesOrder/productSubCategories.json?id=' + prodCatId;
+      			productsubCategoryDDLAdapter.dataBind();
+      			$("#productCategoryDropdownlist").jqxDropDownList('val', prodCatId);
+      		}
+      		else {
+      			productSubCategoryDDLSource.url = basePath + 'salesOrder/emptyArray.json';
+      			productsubCategoryDDLAdapter.dataBind();
+      		}
+      		
+      		if(prodSubCatId && (prodSubCatId > 0)){
+      			$("#productSubCategoryDropdownlist").jqxDropDownList('val', prodSubCatId);
+      			productDDLSource.url = basePath +'salesOrder/productsByProdSubCat.json?productSubCatId=' + prodSubCatId;
+      			productDDLAdapter.dataBind();
+      		}
+      		else {
+      			productDDLSource.url = basePath +'salesOrder/emptyArray.json';
+      			productDDLAdapter.dataBind();
+      		}
+      		
+      		if(prodId && (prodId > 0)){
+      			$("#productDropdownlist").jqxDropDownList('val', prodId);
+      		}
+      		
+      	 }
+        	
+             
+         });
+
+        function preparegriddata(rowscount) {
+            // prepare the data
+            var data = new Array();
+            var firstNames =
+            [
+                "Andrew", "Nancy", "Shelley", "Regina", "Yoshi", "Antoni", "Mayumi", "Ian", "Peter", "Lars", "Petra", "Martin", "Sven", "Elio", "Beate", "Cheryl", "Michael", "Guylene"
+            ];
+
+             var lastNames =
+            [
+                "Fuller", "Davolio", "Burke", "Murphy", "Nagase", "Saavedra", "Ohno", "Devling", "Wilson", "Peterson", "Winkler", "Bein", "Petersen", "Rossi", "Vileid", "Saylor", "Bjorn", "Nodier"
+            ];
+
+            var productNames =
+            [
+                "Black Tea", "Green Tea", "Caffe Espresso", "Doubleshot Espresso", "Caffe Latte", "White Chocolate Mocha", "Caramel Latte", "Caffe Americano", "Cappuccino", "Espresso Truffle", "Espresso con Panna", "Peppermint Mocha Twist"
+            ];
+          
+            for (var i = 0; i < rowscount; i++) {
+                var row = {};
+                var productindex = Math.floor(Math.random() * productNames.length);
+                var quantity = 1 + Math.round(Math.random() * 10);
+
+                row["available"] = false;
+                row["firstname"] = firstNames[Math.floor(Math.random() * firstNames.length)];
+                row["lastname"] = lastNames[Math.floor(Math.random() * lastNames.length)];
+                row["productname"] = productNames[productindex];
+                row["quantity"] = quantity;
+                data[i] = row;
+            }
+
+            return data;
+        }

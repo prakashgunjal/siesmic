@@ -1,0 +1,15 @@
+package com.seismic.crm.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.seismic.crm.model.ProductCategory;
+import com.seismic.crm.model.Question;
+import com.seismic.crm.model.SpecificationMap;
+
+public interface QuestionRepository extends JpaRepository<Question, Long> {
+	@Query("SELECT DISTINCT s.question.questionId, s.question.questionName, s.questionSeq FROM SpecificationMap s WHERE s.productCategory = ?1 ORDER BY s.questionSeq")
+	List<Object> questions(ProductCategory productCategory);	
+}

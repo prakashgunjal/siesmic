@@ -1,0 +1,220 @@
+Ext.require([ 'Ext.form.*', 'Ext.data.*', 'Ext.grid.*',
+		'Ext.layout.container.Column', 'Ext.util.Format.*',
+		'Ext.form.field.VTypes.*' ]);
+
+Ext.define('example.contact', {
+	extend : 'Ext.data.Model',
+	fields : [
+				'entityID',
+				'docName',
+				'entityName',
+				'createdDate'
+	          ]
+});
+
+Ext.define('example.fielderror', {
+	extend : 'Ext.data.Model',
+	fields : [ 'id', 'msg' ]
+});
+
+Ext.onReady(function() {
+
+	var formPanel = new Ext.form.Panel({
+		renderTo : 'formcontacts',
+		frame : true,
+		title : 'Document Form',
+		width : '99.8%',
+		defaultType: 'checkbox',
+		/*autoScroll: true,
+		height:350,*/
+		bodyPadding : 8,
+		waitMsgTarget : true,
+		
+		fieldDefaults : {
+			labelAlign : 'top',
+			labelWidth : 'auto'
+		/* msgTarget: 'side' */
+		},
+		reader : new Ext.data.reader.Json({
+			model : 'example.contact',
+			record : 'contact',
+			successProperty : '@success'
+		}),
+
+		// configure how to read the XML error, using a config
+		// errorReader: {
+		// type: 'xml',
+		// model: 'example.fielderror',
+		// record : 'field',
+		// successProperty: '@success'
+		// },
+
+		items : [ {
+			xtype : 'container',
+			autoWidth : true,
+			layout : 'vbox',
+
+			items : [ {
+				xtype : 'fieldset',
+				title : 'Document Info',
+				style : 'margin-top:10px;',
+				bodyPadding : '7 7 7 7',
+
+				width : '100%',
+				/* border: false, */
+				collapsible : true,
+
+				items : [ {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [ {
+						xtype : 'textfield',
+						fieldLabel : 'Related to',
+						readOnly : true,
+						anchor : '90%',
+						name : 'moduleName',
+						id : 'moduleName',
+						listeners: {
+				            render: function( component ) {
+				            	Ext.getCmp('moduleName').setValue(moduleName);
+				            }
+				        }
+					}, {
+						xtype : 'textfield',
+						fieldLabel : 'Related number',
+						style : 'margin-left:60px',
+						readOnly : true,
+						anchor : '90%',
+						name : 'moduleId',
+						id: 'moduleId',
+						listeners: {
+				            render: function( component ) {
+				            	Ext.getCmp('moduleId').setValue(moduleId);
+				            }
+				        }
+					}, /*{
+						xtype : 'datefield',
+						fieldLabel : 'Date',
+						maxLength : 15,
+						style : 'margin-left:60px',
+						enforceMaxLength : 15,
+						anchor : '90%',
+						vtype : 'alpha',
+						name : 'mname'
+					},*/ {
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Document name',
+						style : 'margin-left:60px',
+						allowBlank : false,
+						maxLength : 15,
+						enforceMaxLength : 15,
+						name : 'lname',
+						id: 'lname'
+					},{
+						xtype : 'filefield',
+						fieldLabel : 'Upload document',
+						 name: 'file',
+						width: 210,
+						style : 'margin-left:60px',
+						allowBlank : false,
+						anchor : '90%'
+//				        ,vtype: 'file'
+//				        ,multiple: true // multiupload (multiple attr)
+//				        ,acceptMimes: ['doc', 'xls', 'xlsx', 'pdf', 'zip', 'rar'] // file types
+////				        ,acceptSize: 2048
+////				        ,fieldLabel: 'File <span class="gray">(doc, xls, xlsx, pdf, zip, rar; 2 MB max)</span>'
+//				        ,inputSize: 76 // size attr
+//				        ,msgTarget: 'under'
+			        	
+
+							
+					},
+
+					]
+				}, {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [/* {
+						xtype : 'textfield',
+						fieldLabel : 'Document owner',
+						anchor : '90%',
+						maxLength : 15,
+						enforceMaxLength : 15,
+						name : 'acctype'
+					},*/
+
+					
+
+					]
+				} ]
+			} 
+
+			]
+		} ],
+
+		buttons : [
+		           /*{
+	        text: 'Upload',
+	        handler: function() {
+	        	
+	            var form = this.up('form').getForm();
+	            if(form.isValid()){
+	                form.submit({
+	                    waitMsg: 'Uploading your photo...',
+	                    success: function(fp, o) {
+	                        Ext.Msg.alert('Success', 'Your photo "' + o.result.file + '" has been uploaded.');
+	                    }
+	                });
+	            }
+	        }
+	    },   */      
+		{
+					text : 'Save',
+					handler : function() {
+				        var form = formPanel.getForm();
+				        
+				        var moduleName = Ext.getCmp("moduleName").getValue();
+				        var moduleId = Ext.getCmp("moduleId").getValue();
+				        var lname = Ext.getCmp("lname").getValue();
+				        if (form.isValid()) {
+				        	
+				        	form.submit({
+								url : '/seismic/commonjsppages/documentController/documentOpportunity.htm?moduleName='+moduleName+"&documentId="+moduleId+"&lname="+lname,
+								method : 'POST',
+								scope : this,
+								waitMsg : 'Loading...',
+								success : function (f, a) {
+									Ext.Msg.alert('Save Data',
+									'Document has been uploaded sucessfully');							
+				                },
+								failure : function (f,a) {  
+									
+									window.location.reload();
+									history.go(0);
+									window.location.href=window.location.href;
+									
+									/*
+									
+									Ext.Msg.alert('Save Data',
+									'Document has been uploaded Failed');
+				                */}
+				                
+							});
+
+				        }					
+
+					
+					
+						
+						
+					}
+				},  {
+					text : 'Cancel',
+					  handler: function(){
+						  window.close();
+					  }
+				} ]
+	});
+	
+});

@@ -1,0 +1,4 @@
+activeProfiles=jboss-public-repository, com-springsource-repository-bundles-external, java-net-public, com-springsource-repository-bundles-release, repository-apache-org
+eclipse.preferences.version=1
+resolveWorkspaceProjects=true
+version=1

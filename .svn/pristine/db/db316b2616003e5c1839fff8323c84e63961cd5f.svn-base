@@ -1,0 +1,791 @@
+//Store for contact type
+//=====================================================//
+Ext.define('contactTypeList', {
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : 'listValueId',
+		type : 'int'
+	}, {
+		name : 'listValueDescription',
+		type : 'string'
+	} ]
+});
+
+var storeContactType = Ext.create('Ext.data.Store', {
+	model : 'contactTypeList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'contact/ContactTypes.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	}
+});
+storeContactType.load();
+// =====================================================//
+// Store for salutation
+// =====================================================//
+Ext.define('salutationList', {
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : 'listValueId',
+		type : 'int'
+	}, {
+		name : 'listValueDescription',
+		type : 'string'
+	} ]
+});
+var storeSalutation = Ext.create('Ext.data.Store', {
+	model : 'salutationList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'contact/Salutation.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	}
+});
+storeSalutation.load();
+// =====================================================//
+// Store for gender
+// =====================================================//
+Ext.define('genderList', {
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : 'listValueId',
+		type : 'int'
+	}, {
+		name : 'listValueDescription',
+		type : 'string'
+	} ]
+});
+var storeGender = Ext.create('Ext.data.Store', {
+	model : 'genderList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'contact/Gender.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	}
+});
+storeGender.load();
+// =====================================================//
+// Store for marital status
+// =====================================================//
+Ext.define('maritalstatusList', {
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : 'listValueId',
+		type : 'int'
+	}, {
+		name : 'listValueDescription',
+		type : 'string'
+	} ]
+});
+var storeMaritalStatus = Ext.create('Ext.data.Store', {
+	model : 'maritalstatusList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'contact/MaritalStatus.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	}
+});
+storeMaritalStatus.load();
+// =====================================================//
+// Store for Language
+// =====================================================//
+Ext.define('languageList', {
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : 'listValueId',
+		type : 'int'
+	}, {
+		name : 'listValueDescription',
+		type : 'string'
+	} ]
+});
+var storeLanguage = Ext.create('Ext.data.Store', {
+	model : 'languageList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'contact/Language.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	}
+});
+storeLanguage.load();
+// =====================================================//
+//Store for Department
+//=====================================================//
+Ext.define('departmentList', {
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : 'contactGroupId',
+		type : 'int'
+	}, {
+		name : 'contactGroupName',
+		type : 'string'
+	} ]
+});
+var storeDepartment = Ext.create('Ext.data.Store', {
+	model : 'departmentList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'contact/Department.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	}
+});
+storeDepartment.load();
+//=====================================================//
+//Store for AccountNumber
+//=====================================================//
+Ext.define('accountNumberList', {
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : 'accountId',
+		type : 'int'
+	}, {
+		name : 'accountNumber',
+		type : 'string'
+	},
+	{name : 'accountName'}
+	]
+});
+var storeAccountNumber = Ext.create('Ext.data.Store', {
+	model : 'accountNumberList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'contact/AccountNumber.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	}
+});
+
+storeAccountNumber.load();
+//=======================================================//
+Ext.require([ 'Ext.form.*', 'Ext.data.*', 'Ext.grid.*',
+		'Ext.layout.container.Column', 'Ext.util.Format.*',
+		'Ext.form.field.VTypes.*' ]);
+
+Ext.define('crm.contact', {
+	extend : 'Ext.data.Model',
+	fields : ['contactId', 'contactNumber','firstName', 'middelName', 'lastName', 'dateOfBirth',
+				 'department', 'title',
+					'contactStartDate', 'contactEndDate', 'emailId',
+					'otherEmailId', 'telephone', 'mobile', 'fax', 'linkedinId',
+					'facebookId',{
+						name : 'lvsalutationId',
+						mapping : 'listValuesBySalulationId.listValueId'				
+					},{
+						name : 'lvgenderId',
+						mapping : 'listValuesByGenderId.listValueId'				
+					},{
+						name : 'lvmaritalstatusId',
+						mapping : 'listValuesByMaritalStausId.listValueId'				
+					},{
+						name : 'lvlanguageId',
+						mapping : 'listValuesByLanguageId.listValueId'				
+					},{
+						name : 'lvcontacttypeId',
+						mapping : 'listValues.listValueId'				
+					},{
+						name : 'accountId',
+						mapping : 'contactAccountId.accountId'
+					}, 	{
+						name : 'accountNumber',
+						mapping : 'account.accountNumber'
+					},{
+						name : 'accountName',
+						mapping : 'account.accountName'
+					},{
+						name : 'department',
+						mapping : 'contactGroup.contactGroupId'
+					}]
+});
+
+Ext.define('crm.fielderror', {
+	extend : 'Ext.data.Model',
+	fields : [ 'id', 'msg' ]
+});
+
+
+var telephone = /^\+{0,1}([1-9]){1,5}\-{1}([0-9]){2,5}\-{0,1}([0-9]){0,5}\-{0,1}([0-9]){0,4}$/i;
+Ext.apply(Ext.form.field.VTypes, {
+    //  vtype validation function
+    tel: function(val, field) {
+        return telephone.test(val);
+    },
+    // vtype Text property: The error text to display when the validation function returns false
+    telText: 'Not a valid telephone number.  Must be in the format "+1-253-453-2453 or +61-4523-253-456".',
+    // vtype Mask property: The keystroke filter mask
+    telMask: /[\+\d\-\d]/i
+});
+
+var mobilenumber = /^\+{0,1}([1-9]){1,5}\-{1}([0-9]){2,5}\-{0,1}([0-9]){0,5}\-{0,1}([0-9]){0,4}$/i;
+Ext.apply(Ext.form.field.VTypes, {
+    //  vtype validation function
+    mobile: function(val, field) {
+        return mobilenumber.test(val);
+    },
+    // vtype Text property: The error text to display when the validation function returns false
+    mobileText: 'Not a valid mobile number.  Must be in the format "+44-7123-123456".',
+    // vtype Mask property: The keystroke filter mask
+    mobileMask: /[\+\d\-\d]/i
+});
+
+var faxnumber = /^\+{0,1}([1-9]){1,5}\-{1}([0-9]){2,5}\-{0,1}([0-9]){0,5}\-{0,1}([0-9]){0,4}$/i;
+Ext.apply(Ext.form.field.VTypes, {
+    //  vtype validation function
+    fax: function(val, field) {
+        return faxnumber.test(val);
+    },
+    // vtype Text property: The error text to display when the validation function returns false
+    faxText: 'Not a valid fax number.  Must be in the format "+44-7123-123456".',
+    // vtype Mask property: The keystroke filter mask
+    faxMask: /[\+\d\-\d]/i
+});
+
+
+Ext.apply(Ext.form.VTypes,{
+	adult: function(val, field){
+		try{
+			var birth = field.getValue();
+			var now = new Date();
+			// The number of milliseconds in one year
+			var ONE_YEAR = 1000 * 60 * 60 * 24 * 365;
+		    	// Convert both dates to milliseconds
+		    	var date1_ms = birth.getTime()
+		    	var date2_ms = now.getTime()
+		    	// Calculate the difference in milliseconds
+		    	var difference_ms = Math.abs(date1_ms - date2_ms)
+		    	// Convert back to years
+		    	var years = difference_ms/ONE_YEAR;
+			return years >= 18;
+		}catch(e){
+			return false;
+		}
+	},
+	adultText: 'You are underage!', //error message
+	adultMask: / /  //regexp to filter the characters allowed
+});
+
+
+
+Ext.onReady(function() {
+	
+	
+	Ext.apply(Ext.form.field.VTypes, {
+        daterange: function(val, field) {
+            var date = field.parseDate(val);
+
+            if (!date) {
+                return false;
+            }
+            if (field.startDateField && (!this.dateRangeMax || (date.getTime() != this.dateRangeMax.getTime()))) {
+                var start = field.up('form').down('#' + field.startDateField);
+                start.setMaxValue(date);
+                start.validate();
+                this.dateRangeMax = date;
+            }
+            else if (field.endDateField && (!this.dateRangeMin || (date.getTime() != this.dateRangeMin.getTime()))) {
+                var end = field.up('form').down('#' + field.endDateField);
+                end.setMinValue(date);
+                end.validate();
+                this.dateRangeMin = date;
+            }
+            /*
+             * Always return true since we're only using this vtype to set the
+             * min/max allowed values (these are tested for after the vtype test)
+             */
+            return true;
+        },
+
+        daterangeText: 'Start date must be less than end date',
+    });
+		                     
+	var contactFormPanel = new Ext.form.Panel({
+		renderTo : 'formcontacts',
+		frame : true,
+		title : 'Contact Form',
+		id : 'contactId',
+		width : '99.8%',
+		autoScroll:true,
+		defaultType: 'textbox',		
+		bodyPadding : 8,
+		waitMsgTarget : true,		
+		fieldDefaults : {
+			labelAlign : 'top',
+			width:250,
+			labelWidth : 'auto'		
+		},
+		reader : new Ext.data.reader.Json({
+			model : 'crm.contact',
+			successProperty : '@success'
+		}),
+
+		
+		items : [ {
+			xtype : 'container',
+			autoWidth : true,
+			layout : 'vbox',
+
+			items : [ {
+				xtype : 'fieldset',
+				title : 'Personal Info',
+				style : 'margin-top:10px;',
+				bodyPadding : '7 7 7 7',
+				width : '100%',				
+				collapsible : true,
+
+				items : [ {
+					xtype : 'fieldcontainer',
+
+					layout : 'hbox',
+					items : [ 
+							{
+								xtype : 'textfield',
+								fieldLabel : 'Contact number',
+								maxLength : 50,
+								enforceMaxLength : 50,
+								hideTrigger : true,
+								allowBlank : false,	
+								readOnly:true, 
+								anchor : '90%',								
+								name : 'contactNumber'
+							},
+							{
+								xtype : 'combobox',
+								fieldLabel : 'Salutation',
+								minChars: 2,
+								emptyText : 'Type',
+								style : 'margin-left:60px',
+								allowBlank : true,
+								maxLength : 20,
+								enforceMaxLength : 20,
+								typeAhead : true,
+								queryMode: 'local',
+								name : 'lvsalutationId',
+								id : 'lvsalutationId',
+								store : storeSalutation,
+								displayField : 'listValueDescription',
+								valueField : 'listValueId',
+								anchor : '90%',
+								emptyText : 'Select salutation...'								
+							},
+					        {
+								xtype : 'textfield',
+								fieldLabel : 'First name',
+								emptyText : 'Enter first name',
+								maxLength : 15,
+								style : 'margin-left:60px',
+								enforceMaxLength : 15,
+								allowBlank : false,
+								anchor : '90%',
+								vtype : 'alpha',
+								name : 'firstName'
+					}, {
+						xtype : 'textfield',
+						fieldLabel : 'Middle name',
+						emptyText : 'Enter middle name',
+						maxLength : 15,
+						style : 'margin-left:60px',
+						enforceMaxLength : 15,
+						anchor : '90%',
+						vtype : 'alpha',
+						name : 'middelName'
+					}, 
+
+					]
+				}, {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [	
+							{
+								xtype : 'textfield',
+								anchor : '90%',
+								fieldLabel : 'Last name',
+								emptyText : 'Enter last name',
+								allowBlank : false,
+								maxLength : 15,
+								enforceMaxLength : 15,
+								name : 'lastName'
+							},
+					         
+					{
+								xtype : 'combobox',
+								fieldLabel : 'Contact type',
+								allowBlank : false,
+								style : 'margin-left:60px',
+								typeAhead : true,
+								queryMode: 'local',
+								name : 'lvcontacttypeId',
+								id : 'lvcontacttypeId',
+								store : storeContactType,
+								displayField : 'listValueDescription',
+								valueField : 'listValueId',
+								anchor : '90%',
+			                     emptyText: 'Select type.....'
+						},
+						{
+							xtype : 'combobox',
+							fieldLabel : 'Account name',
+							style : 'margin-left:60px',
+							typeAhead : true,
+							queryMode: 'local',
+							name : 'accountId',
+							id : 'accountId',
+							store : storeAccountNumber,
+							displayField : 'accountName',
+							valueField : 'accountId',
+							anchor : '90%',
+							emptyText: 'Select account name',
+								listeners: {
+									change: function (combo, newValue, oldValue) {
+										var value_index = storeAccountNumber.find('accountId', newValue);										
+										if(value_index!=-1 ){
+										var record = storeAccountNumber.getAt(value_index);																													
+										if(record){
+										 Ext.getCmp('accountNumber').setValue(record.get("accountNumber"));
+										}
+								  	  }										
+										
+									}
+								}
+							},
+							{
+			                    xtype:'textfield',
+								fieldLabel: 'Account number',
+								emptyText: 'Select account name',
+								style : 'margin-left:60px',
+								readOnly:true, 								
+								id : 'accountNumber',
+								name : 'accountNumber'
+								/*width: 210*/		              
+							},
+							]
+				},{
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [
+					{
+							xtype : 'combobox',
+							fieldLabel : 'Gender',
+							vtype : 'alpha',
+							allowBlank : true,
+							typeAhead : true,
+							queryMode: 'local',
+							name : 'lvgenderId',
+							id : 'lvgenderId',
+							store : storeGender,
+							displayField : 'listValueDescription',
+							valueField : 'listValueId',
+							anchor : '90%',
+							emptyText : 'Select gender...'
+					},
+
+					{
+						xtype : 'datefield',
+						fieldLabel : 'Date of birth',
+						emptyText:'select date',
+						name : 'dateOfBirth',
+						emptyText : 'mm/dd/yy',
+						style : 'margin-left:60px',
+						vtype:'adult',
+						anchor : '90%'
+
+					}, 
+
+					/*]
+				},{
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [ */
+						{
+							xtype : 'combobox',
+							fieldLabel : ' Marital status',
+							//vtype : 'alpha',
+							allowBlank : true,
+							typeAhead : true,
+							queryMode: 'local',
+							style : 'margin-left:60px',
+							name : 'lvmaritalstatusId',
+							id : 'lvmaritalstatusId',
+							store : storeMaritalStatus,
+							displayField : 'listValueDescription',
+							valueField : 'listValueId',
+							anchor : '90%',
+							emptyText : 'Select  status...'
+						},
+					
+					]
+				} ]
+			},
+
+			{
+				xtype : 'fieldset',
+				title : 'Contact Info',
+				style : 'margin-top:5px',
+				width : '100%',
+				border : false,
+				collapsible : true,
+
+				items : [ {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [ {
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Telephone number',
+						maxLength : 16,
+						vtype:'tel',
+						enforceMaxLength : 16,
+						hideTrigger : true,
+						emptyText : '+44-207-123-4567',
+						name : 'telephone',
+						allowBlank : false
+
+					}, {
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Mobile number',
+						emptyText : '+44-7123-123456',
+						vtype:'mobile',
+						maxLength : 16,
+						style : 'margin-left:60px',
+						enforceMaxLength : 16,
+						hideTrigger : true,
+						name : 'mobile',
+
+					},
+					{
+						xtype : 'textfield',
+						fieldLabel : 'Fax number',
+						maxLength : 16,
+						enforceMaxLength : 16,
+						style : 'margin-left:60px',
+						vtype:'fax',
+						emptyText : '+44-202-4564563',
+						name : 'fax'
+
+					},
+					{
+						xtype : 'textfield',
+						fieldLabel : 'Email address',
+						anchor : '90%',
+						allowBlank : false,
+						style : 'margin-left:60px',
+						maxLength : 50,
+						enforceMaxLength : 50,
+						vtype : 'email',
+						name : 'emailId',
+						emptyText : 'xxx@xxx.com'
+					},
+					
+					
+					]
+				}, {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [  
+					{
+						xtype : 'textfield',
+						fieldLabel : 'Alternate email address',
+						maxLength : 50,
+						enforceMaxLength : 50,
+//						style : 'margin-left:60px',
+						name : 'otherEmailId',
+						vtype : 'email',
+						emptyText : 'xxx@xxx.com'
+					},
+					{
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Linkedin url',
+						style : 'margin-left:60px',
+						emptyText : 'http://www.linkedin.com/in/xxxx',
+						name : 'linkedinId'
+							
+					}, {
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Facebook url',
+						style : 'margin-left:60px',
+						emptyText : 'Enter facebook url',
+						name : 'facebookId'
+					},
+					
+					]
+				} ]
+			}, {
+				xtype : 'fieldset',
+				title : 'Other Info',
+				style : 'margin-top:10px',
+				width : '100%',
+				border : false,
+				collapsible : true,
+
+				items : [ {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [ 
+					          
+					{
+						xtype : 'combobox',
+						fieldLabel : 'Department',
+//						vtype : 'alpha',
+						allowBlank : true,
+						maxLength : 50,
+						enforceMaxLength : 50,
+						typeAhead : true,
+						queryMode: 'local',
+						name : 'department',
+						id : 'department',
+						store : storeDepartment,
+						displayField : 'contactGroupName',
+						valueField : 'contactGroupId',
+						anchor : '90%',
+						emptyText : 'Select department...'
+
+					},
+
+					{
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Title',
+						emptyText : 'Enter title',
+						style : 'margin-left:60px',
+						name : 'title'
+
+					},/* {
+						xtype : 'textfield',
+						anchor : '90%',
+						style : 'margin-left:60px',
+						fieldLabel : 'Supervisor',
+						emptyText : 'Enter name',
+						name : 'supervisor'
+					},*/
+					{
+						xtype : 'datefield',
+						anchor : '90%',
+						fieldLabel : 'Start date',
+						emptyText : 'mm/dd/yy',
+						style : 'margin-left:60px',
+						/*minValue: new Date(),*/
+						vtype: 'daterange',
+		                endDateField: 'contactEndDate',
+						emptyText:'only in case of employee',
+						id:'contactStartDate',
+						name : 'contactStartDate'
+
+					},
+					{
+						xtype : 'datefield',
+						anchor : '90%',
+						emptyText : 'mm/dd/yy',
+						fieldLabel : 'End date',
+						emptyText:'only in case of employee',
+						style : 'margin-left:60px',
+						vtype: 'daterange',
+		                startDateField: 'contactStartDate',
+		                id:'contactEndDate',
+						name : 'contactEndDate'
+
+					}, 
+
+					]
+				}]
+			},  
+
+			]
+		} ],
+
+		buttons : [{
+			text : 'Save',
+			id:'saveDataId',
+			handler : function() {				
+				var form = contactFormPanel.getForm();
+				if (form.isValid()) {
+						var str = "";						
+						if(contactId != "0"){
+						str = "?contactId=" + contactId; 
+					}												 				 					       						
+					              contactFormPanel.getForm().submit(
+									{
+										url : basePath + 'contact/saveContactData'+ str,
+										method : 'POST',									
+										scope : this,
+										submitEmptyText : false,
+										waitMsg : 'Loading...',
+										success : function(	f, a) {									 	 		
+											 Ext.MessageBox.show({
+										           title:'Save Data',
+										           msg: a.result.message ,
+										           buttons: Ext.MessageBox.OK,
+										           fn: function(f1, a1 ){  										        	      
+										        	   location.href = basePath+ 'crm/contacts/contact.htm?contactId='	+ a.result.obj.contactId;										        	   										        	    
+										           }  									          									         	        
+										       }); 
+										},
+										failure : function(f, a) {
+											/*
+											if (contactId == "") {
+												location.href = basePath+ 'crm/contacts/contact.htm?contactId='	+ a.result.contactId;
+											} */
+										}
+									}); 					    					
+				}
+
+			} 
+		},		
+		{
+			text : 'Cancel',
+				handler : function() {					 					 
+										
+					 if(url1!=null && url1!="" && url1!="null" ){						
+						  location.href =url1;	  
+					  }else if(url!=null && url!="" && url!="null" ){						
+						  location.href =url;	  
+					  }else if(url1==null || url==null || url1=="" || url=="" || url1=="null" || url=="null" ){  						   			 
+						  location.href = basePath+ 'crm/contacts/contact.htm?contactId=' +contactId;
+					  }
+				}
+	}]
+	
+	});
+	if(contactId!='null' && contactId !="" ){	 	 
+	contactFormPanel.getForm().load({
+		id : 'contactId',
+		url :  basePath + 'contact/' + contactId + '/editContactReport.json',
+		method : 'GET',
+		waitMsg : 'Loading...'
+	});
+	}
+	if(contactId=='null' || contactId=="" ){
+	contactFormPanel.getForm().load({		
+		url :  basePath + 'contact/editContactReportOnLoad.json',
+		method : 'GET',
+		waitMsg : 'Loading...'
+	});
+	}
+	if((contactId=='null' || contactId=="") && accountId != 'null' && accountId !=""){
+		contactFormPanel.getForm().load({		
+			url :  basePath + 'contact/editCommonContactOnLoad.json?accountId='+accountId,
+			method : 'GET',
+			waitMsg : 'Loading...'
+		});
+		}
+});

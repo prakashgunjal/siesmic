@@ -1,0 +1,367 @@
+package com.seismic.crm.controller;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.mail.MessagingException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import com.seismic.crm.bean.KeyValueMap;
+import com.seismic.crm.model.Account;
+import com.seismic.crm.model.Contact;
+import com.seismic.crm.model.ContactGroup;
+import com.seismic.crm.model.ListValues;
+import com.seismic.crm.model.Quote;
+import com.seismic.crm.model.SalesOrder;
+import com.seismic.crm.repository.AccountRepository;
+import com.seismic.crm.repository.ContactGroupRepository;
+import com.seismic.crm.repository.ContactRepository;
+import com.seismic.crm.repository.ListValuesRepository;
+import com.seismic.crm.service.AccountService;
+import com.seismic.crm.service.MailService;
+import com.seismic.crm.utils.CustomDateUtil;
+import com.seismic.crm.utils.ExtJSResponse;
+import com.seismic.crm.utils.MessagesUtil;
+import com.seismic.crm.utils.RandomKeyGeneration;
+import com.seismic.crm.utils.SecurityContextUtil;
+
+
+@Controller
+@RequestMapping(value = "/accountController")
+public class AccountController {
+				
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	@Autowired
+	private ContactRepository contactRepository;
+				
+	@Autowired
+	private ListValuesRepository listValuesRepository;
+   
+	@Autowired
+	private AccountService accountService;
+ 
+	@Autowired
+	private MailService mailService;
+	
+	@Autowired
+	private SecurityContextUtil securityContextUtil;
+	
+	@Autowired
+	private CustomDateUtil customDateUtil; 
+	
+	@Autowired
+	private ContactGroupRepository contactGroupRepository;
+	
+	DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+	
+	@RequestMapping(value = "/accountData", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Account> getAllAccountData() {	   	
+		Sort sort= new Sort(Sort.Direction.DESC , "modifiedAt" );  	
+		List<Account> list =  accountRepository.findAll(sort)  ;
+		if(!list.isEmpty()){
+			
+		  for (Account account:list){
+			   if(account.getContactByPrimaryContactName()!=null){
+				  account.setPrimaryContactName(account.getContactByPrimaryContactName().getContactName());
+			   }
+	     	}
+			
+		}
+		return list;		
+	} 
+ 
+	@RequestMapping(value = "/accountTypeList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> getAccountTypeList() {			 
+		return listValuesRepository.findByListValueCategory("Account Type");  
+	}
+	
+	@RequestMapping(value = "/industryTypeList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> getIndustryTypeList() {			 
+		return listValuesRepository.findByListValueCategory("Industry");  
+	}
+	
+	@RequestMapping(value = "/accountStatusList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> getAccountStatusList() {			 
+		return listValuesRepository.findByListValueCategory("Account Status");  // Account Status
+	}
+	
+	@RequestMapping(value = "/accountSourceList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> getAccountSourceList() {			 
+		return listValuesRepository.findByListValueCategory("Source");  // Account Source
+	}
+	
+	@RequestMapping(value = "/accountRatingList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> getAccountRatingList() { 		 	 
+		return listValuesRepository.findByListValueCategory("Account Rating");  
+	}
+	
+	@RequestMapping(value = "/salesTeamList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ContactGroup> getSalesTeamList() {	                                            		        	
+		List<ContactGroup> list =  contactGroupRepository.findAll()  ;  		
+		return list;		
+	} 
+	
+	@RequestMapping(value = "{accountId}/editAccountReport", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	Account editAccountReport(@PathVariable Long accountId) {	
+		Account account = accountService.findById(accountId);  		
+		
+		if(account != null){
+				account.setPrimaryContactId(account.getContactByPrimaryContactName());
+		}
+		
+	//	Account account1 =  accountRepository.findOne(Long.valueOf(account.getAccountParentId()) ); 
+	//	account.setAccountParentId(account1.getAccountNumber());    
+		return account; 
+	}
+	
+	@RequestMapping(value = "getSalesRep", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<KeyValueMap> getSalesRep(@RequestParam(required=false) Long AccContactGroupId){
+		List<KeyValueMap> keyValueMap = new ArrayList<KeyValueMap>();
+		if(AccContactGroupId!=null){
+			ContactGroup contactGroup= contactGroupRepository.findOne(AccContactGroupId);
+		
+		if(contactGroup != null){
+			keyValueMap = contactRepository.getContactSalesRep(contactGroup.getContactGroupId() );
+		}	
+		}
+		return keyValueMap;
+	}
+	        
+	@RequestMapping(value = "{accountId}/salesFormList", method = RequestMethod.GET , produces = "application/json" )
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<SalesOrder> salesFormList(@PathVariable Long accountId) {						 
+		List<SalesOrder> saleOrderLIst =accountService.getSalesFormListByAccount(accountId); 				
+        return saleOrderLIst; 
+	}  
+	
+	@RequestMapping(value = "/randomNumberGenerationforAccountOnLoad", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	Account randomNumberGenerationforAccountOnLoad() throws FileNotFoundException, IOException {
+
+		System.out.println("Inside randomNumberGenerationforAccountOnLoad ==============================================>");
+		String key = new RandomKeyGeneration().getRandomGeneration();
+		Account account = new Account();
+		account.setAccountNumber(key);		
+		return account;
+
+	}
+	   
+		
+	@RequestMapping(value = "/createAccountData", method = RequestMethod.POST, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	ExtJSResponse saveAccountData(@RequestParam(required=false) Long accountId,  @RequestParam String accountNumber, @RequestParam String accountName,
+			@RequestParam String alternateAccountNumber,
+			@RequestParam Long laccountTypeId,
+			
+			@RequestParam(required=false) Long accountParentId, @RequestParam Long industryTypeId,
+			
+			@RequestParam Long laccountStatusId, @RequestParam Long laccountSourceId, @RequestParam Long primaryContactId,
+			@RequestParam String position, @RequestParam String primaryTelephoneNumber,	@RequestParam String otherPhone,@RequestParam String emailId,
+			@RequestParam String alternateEmailId, @RequestParam String webSite,@RequestParam String companyAddress1,@RequestParam String companyAddress2 ,			
+			@RequestParam String companyAddress3,@RequestParam String companyPostCode,
+			
+			@RequestParam(required=false) Long contactGroupId, @RequestParam(required=false) Long salesRepId,
+			
+			@RequestParam(required=false) Boolean doNotCall,
+			@RequestParam(required=false) Boolean doNoTEmail,@RequestParam(required=false) Boolean doNotSms,
+			@RequestParam String revenue,@RequestParam String accountRating,@RequestParam BigDecimal accountCreditLimiit,
+			@RequestParam Float discount,@RequestParam String ownership,@RequestParam String stockExchange,@RequestParam String ticker,			
+			@RequestParam String bankName,@RequestParam String bankAccountName, @RequestParam String bankAccountNumber, @RequestParam String bankAccountSortCode,
+			@RequestParam String bankAddress1,@RequestParam String bankAddress2, @RequestParam String bankAddress3, @RequestParam String bankPostCode,
+			@RequestParam String billingName,@RequestParam String billingContactName,@RequestParam String billingTelephoneNumber,@RequestParam String billingContactEmailId,
+			@RequestParam String billingAddress1,@RequestParam String billingAddress2,@RequestParam String billingAddress3,@RequestParam String billingPostCode 
+			,@RequestParam String accountRegistrationNumber,@RequestParam String accountRegistrationDate
+			,@RequestParam String accountNoOfEmployees,@RequestParam String accountFaceBookLink
+			,@RequestParam String accountLinkedInLink
+	    
+			
+			//@RequestParam String moduleName					
+			) throws ParseException, FileNotFoundException, IOException, MessagingException {    
+		    System.out.println("===========AccountController:: createAccountData ==================" +accountParentId);		      		         
+		    ContactGroup contactGrp;
+		    Account account;
+		    String message;	 
+			if(accountId == null){
+				account = new Account();
+				System.out.println("============creating new============");
+				account.setCreatedAt( CustomDateUtil.getDateAndTime() );  
+				account.setModifiedAt(CustomDateUtil.getDateAndTime() ); 
+			}else {
+				account = accountService.findById(accountId);
+				System.out.println("========updating=======accountId="+accountId);
+				System.out.println("========updating=========account="+account); 
+				account.setModifiedAt(CustomDateUtil.getDateAndTime() ); 
+			}			
+			account.setAccountName(accountName); 
+			account.setAccountNumber(accountNumber); 
+			account.setAlternateAccountNumber(alternateAccountNumber); 
+			
+		  if(laccountTypeId!=null &&  laccountTypeId > 0) {
+			  ListValues listValuesByAccountTypeId = listValuesRepository.findOne(laccountTypeId);
+			  account.setListValuesByAccountTypeId(listValuesByAccountTypeId);  
+		  }else{
+			  account.setListValuesByAccountTypeId(null);
+		  }
+		  if (laccountStatusId!=null && laccountStatusId > 0) {
+			  ListValues listValuesByStatusId = listValuesRepository.findOne(laccountStatusId);
+			  account.setListValuesByStatusId(listValuesByStatusId);             					
+		  }else{
+			  account.setListValuesByStatusId(null);
+		  }
+		  if(laccountSourceId!=null &&   laccountSourceId > 0) {
+			  ListValues listValuesBySourceId = listValuesRepository.findOne(laccountSourceId);
+			  account.setListValuesByAccountSourceId(listValuesBySourceId);   								 
+		  }else{
+			  account.setListValuesByAccountSourceId(null); 
+		  }		  
+		  if(industryTypeId!=null &&  industryTypeId > 0) {			
+			  ListValues listValuesByIndustryTypeId = listValuesRepository.findOne(industryTypeId);
+			  account.setListValuesByIndustryTypeId(listValuesByIndustryTypeId);    
+		  }else{
+			  account.setListValuesByIndustryTypeId(null);  
+		  }
+		  
+		  if( accountParentId!=null     ) {		// &&  accountParentId > 0	
+			  
+			  account.setParentAccount(accountRepository.findOne(accountParentId));			 
+		  }else{
+			  account.setParentAccount(null);  
+		  }  
+			
+		  if(  contactGroupId!=null &&  contactGroupId > 0){	
+			  contactGrp = contactGroupRepository.findOne(contactGroupId );
+			  account.setContactGroup(contactGrp);  			    
+		  }else{
+			  contactGrp = new ContactGroup();
+			  account.setContactGroup(contactGrp);      
+		  } 
+		  if( salesRepId!=null &&  salesRepId > 0   ){				
+			 account.setContact(contactRepository.findOne(salesRepId));       
+		  }else{
+			  Contact contact = new Contact();
+//			 account.setContact(contact);      
+		  } 
+		  account.setContactByPrimaryContactName(contactRepository.findOne(primaryContactId));
+		  account.setPosition(position); 
+		  account.setPrimaryTelephoneNumber(primaryTelephoneNumber); 
+		  account.setOtherPhone(otherPhone);  
+		  account.setEmailId(emailId); 
+		  account.setAlternateEmailId(alternateEmailId); 
+		  account.setWebSite(webSite); 
+		  account.setCompanyAddress1(companyAddress1); 
+		  account.setCompanyAddress2(companyAddress2); 
+		  account.setCompanyAddress3(companyAddress3); 
+		  account.setCompanyPostCode(companyPostCode); 		 		  
+		  account.setDoNotCall(doNotCall); 
+		  account.setDoNoTEmail(doNoTEmail); 
+		  account.setDoNotSms(doNotSms); 
+		  account.setRevenue(revenue);
+		  account.setAccountRating(accountRating);
+		  account.setAccountCreditLimiit(accountCreditLimiit); 
+		  account.setDiscount(discount); 
+		  account.setOwnership(ownership); 
+		  account.setStockExchange(stockExchange); 
+		  account.setTicker(ticker); 
+		  account.setBankName(bankName); 
+		  account.setBankAccountName(bankAccountName);
+		  account.setBankAccountNumber(bankAccountNumber);  
+		  account.setBankAccountSortCode(bankAccountSortCode); 
+		  account.setBankAddress1(bankAddress1);
+		  account.setBankAddress2(bankAddress2);
+		  account.setBankAddress3(bankAddress3);
+		  account.setBankPostCode(bankPostCode);             
+		  account.setBillingName(billingName);
+		  account.setBillingContactName(billingContactName); 
+		  account.setBillingTelephoneNumber(billingTelephoneNumber);          
+		  account.setBillingContactEmailId(billingContactEmailId);
+		  account.setBillingAddress1(billingAddress1);
+		  account.setBillingAddress2(billingAddress2);
+		  account.setBillingAddress3(billingAddress3);
+		  account.setBillingPostCode(billingPostCode);
+		  account.setAccountRegistrationNumber(accountRegistrationNumber);
+		  account.setAccountRegistrationDate(new java.sql.Date(df.parse(accountRegistrationDate).getTime()));
+		  if(accountNoOfEmployees!=null && accountNoOfEmployees!=""){
+		  account.setAccountNoOfEmployees(Integer.parseInt(accountNoOfEmployees));
+		  }
+		  account.setAccountLinkedInLink(accountLinkedInLink);
+		  account.setAccountFaceBookLink(accountFaceBookLink);
+		  account.setCreatedBy(securityContextUtil.getUsername());
+		  account.setCreatedAt(customDateUtil.getDateAndTime());
+		  account.setModifiedAt( CustomDateUtil.getDateAndTime()); // securityContextUtil.getUsername(
+		  account.setModifiedBy(securityContextUtil.getUsername() ); // customDateUtil.getDateAndTime()
+		  System.out.println("laccountTypeId------------>" + laccountTypeId);      
+		  System.out.println("laccountStatusId------------>" + laccountStatusId);
+		  System.out.println("laccountSourceId----------------->" + laccountSourceId);
+		  if(accountId==null ){          			
+			    message= MessagesUtil.showMessage("Account", accountNumber,  "Created" , "Successfully" ) ;			
+		  }else{					
+				message= MessagesUtil.showMessage("Account", accountNumber,  "Updated" , "Successfully" ) ;
+		  }				  
+		Account newAccount = accountService.saveAccount(account);				
+		return new ExtJSResponse(true , newAccount, message ); 
+	}
+	
+	@RequestMapping(value = "/getAccountNumber", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<KeyValueMap> getAccountNumber() {
+		return accountRepository.getAccountDetails();
+	}
+	
+	@RequestMapping(value = "/getPrimaryContactName", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Contact> getPrimaryContactName(@RequestParam(required = false) Long accountId) {
+		List<Contact> contacts = null;
+		if(accountId!=null){
+				contacts = contactRepository.getPrimaryCNameByAccountList(accountId);
+		}else{
+				contacts = contactRepository.getPrimaryContactNameList();
+		}
+		return contacts;
+	}
+	
+}
+
+
+

@@ -1,0 +1,20 @@
+{
+  "invenbooking": {
+    "booknme": "proddisnme",
+    "locnme": "premiseswingdesc",
+    "sitenme": "kripa11",
+    "permisnme": "kripa11",
+    "permiswingnme": "vkripa11@sencha.com",
+    "permislocnme": "OH1",
+    "uom": "OH13",
+    "reorderqty": "09/11/2013",
+    "moddatetime": "09/11/2013",
+    "bookingdate": "bbbb",
+	"supplier": "bbbb",
+	"bookingtype": "bbbb",
+	"serlot": "bbbb",
+	"bookingserisrt": "bbbb",
+	"bookingserisrt": "bbbb",
+	
+  }
+}

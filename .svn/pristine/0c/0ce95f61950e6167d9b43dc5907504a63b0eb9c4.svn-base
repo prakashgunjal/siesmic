@@ -1,0 +1,41 @@
+package com.seismic.crm.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.seismic.crm.model.ChecklistDocument;
+import com.seismic.crm.model.ChecklistMap;
+import com.seismic.crm.model.ChecklistProductCategory;
+import com.seismic.crm.model.ChecklistResponse;
+import com.seismic.crm.model.Product;
+import com.seismic.crm.model.ProductCategory;
+import com.seismic.crm.model.Question;
+import com.seismic.crm.model.SalesOrder;
+import com.seismic.crm.model.SoSpecQuestion;
+import com.seismic.crm.model.SoSpecQuestionResponse;
+import com.seismic.crm.model.SoSpecTask;
+import com.seismic.crm.model.SoSpecTaskResponse;
+import com.seismic.crm.model.SpecificationMap;
+import com.seismic.crm.model.SupplierProduct;
+import com.seismic.crm.model.Task;
+
+public interface ChecklistResponseRepository extends JpaRepository<ChecklistResponse, Long> {
+	@Query("SELECT resp FROM ChecklistResponse resp "
+			+ "JOIN resp.salesOrder rso "
+			+ "LEFT JOIN FETCH resp.checklistDocument "
+			+ "LEFT JOIN FETCH resp.checklistProductCategory cpc "
+			+ "LEFT JOIN FETCH cpc.productCategory "
+			+ "WHERE rso = ?1")
+	public List<ChecklistResponse> responses(SalesOrder salesOrder);	
+	
+	@Query("SELECT resp FROM ChecklistResponse resp "
+			+ "WHERE resp.salesOrder.salesOrderId = ?1 AND "
+			+ "resp.checklistDocument.checklistDocumentId = ?2 AND "
+			+ "resp.checklistProductCategory.productCategory.productCategoryId = ?3")
+	public List<ChecklistResponse> getChecklistResponse(Long salesOrderId, Long checklistDocId, Long prodCatId);	
+	
+}

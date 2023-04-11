@@ -1,0 +1,51 @@
+package com.seismic.crm.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.seismic.crm.model.ChecklistMap;
+import com.seismic.crm.model.ChecklistProductCategory;
+import com.seismic.crm.model.Product;
+import com.seismic.crm.model.ProductCategory;
+import com.seismic.crm.model.Question;
+import com.seismic.crm.model.SalesOrder;
+import com.seismic.crm.model.SoSpecQuestion;
+import com.seismic.crm.model.SoSpecQuestionResponse;
+import com.seismic.crm.model.SoSpecTask;
+import com.seismic.crm.model.SoSpecTaskResponse;
+import com.seismic.crm.model.SupplierProduct;
+
+public interface ChecklistProductCategoryRepository extends JpaRepository<ChecklistProductCategory, Long> {
+
+	@Query("SELECT cpc.productCategory FROM ChecklistProductCategory cpc "
+			+ "WHERE EXISTS "
+			+ "(SELECT so FROM SalesOrder so JOIN so.salesOrderProductDetails pd "
+			+ "JOIN pd.product prod JOIN pd.lvsoLineItem li "
+			+ "WHERE so = ?1 AND cpc.productCategory = prod.productCategory AND "
+			+ "li.listValueCategory = 'Line Item Type' AND li.listValueDescription = 'Order Form') "
+			+ "ORDER BY cpc.checklistProductCategorySeq ")
+	public List<ProductCategory> relevantProdCat(SalesOrder salesOrder);	
+
+	@Query("SELECT cpc FROM ChecklistProductCategory cpc "
+			+ "WHERE EXISTS "
+			+ "(SELECT so FROM SalesOrder so JOIN so.salesOrderProductDetails pd "
+			+ "JOIN pd.product prod JOIN pd.lvsoLineItem li "
+			+ "WHERE so = ?1 AND cpc.productCategory = prod.productCategory AND "
+			+ "li.listValueCategory = 'Line Item Type' AND li.listValueDescription = 'Order Form') "
+			+ "ORDER BY cpc.checklistProductCategorySeq ")
+	public List<ChecklistProductCategory> relevantChecklistProdCats(SalesOrder salesOrder);	
+
+	@Query("SELECT cpc.productCategory FROM ChecklistProductCategory cpc "
+			/*+ "JOIN FETCH cpc.productCategory "*/
+			+ "ORDER BY cpc.checklistProductCategorySeq ")
+	public List<ProductCategory> allProdCat();	
+
+	@Query("SELECT cpc FROM ChecklistProductCategory cpc JOIN cpc.checklistDocuments chdocs "
+			+ "WHERE cpc.productCategory.productCategoryId = ?1 AND chdocs.checklistDocumentId = ?2")
+	public ChecklistProductCategory getChecklistProductCategory(Long prodCat, Long checklistDocId);	
+
+}

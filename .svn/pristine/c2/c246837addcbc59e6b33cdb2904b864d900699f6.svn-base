@@ -1,0 +1,1248 @@
+Ext.define('accountList', {
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : 'accountId',
+		type : 'int'
+	}, {
+		name : 'accountName',
+		type : 'string'
+	},
+{name : 'accountRegistrationNumber'},
+{name : 'accountRegistrationDate'},
+{name : 'accountNoOfEmployees'},
+//{name : 'telephone'},
+{name : 'webSite'},
+{name : 'accountRating'},
+{name : 'accountCreditLimiit'},
+{name : 'alternateAccountNumber'},
+{name : 'contactByPrimaryContactName', mapping : 'contact.contactName'},
+{name : 'primaryTelephoneNumber'},
+{name : 'technicalEmailId'},
+{name : 'technicalContactName'},
+{name : 'technicalTelephoneNumber'},
+{name : 'billingContactName'},
+{name : 'billingTelephoneNumber'},
+{name : 'billingContactEmailId'},
+{name : 'billingName'},
+{name : 'billingAddress1'},
+{name : 'billingAddress2'},
+{name : 'billingAddress3'},
+{name : 'billingPostCode'},
+{name : 'companyAddress1'},
+{name : 'companyAddress2'},
+{name : 'companyAddress3'},
+{name : 'companyPostCode'},
+{name : 'bankName'},
+{name : 'bankAccountName'},
+{name : 'bankAccountSortCode'},
+{name : 'bankAccountNumber'},
+{name : 'bankAddress1'},
+{name : 'bankAddress2'},
+{name : 'bankAddress3'},
+{name : 'bankPostCode'},
+{name : 'custTypeId'},
+{name : 'salesRepId', mapping : 'contact.contactName'},
+{name : 'title', mapping : 'contact.title'},
+{name : 'telephone', mapping : 'contact.telephone'},
+{name : 'contactId', mapping : 'contact.contactId'},
+{name : 'firstName',mapping : 'contact.contactName'},
+{name : 'emailId', mapping : 'contact.emailId'}
+
+]
+});
+
+var storeAccount = Ext.create('Ext.data.Store', {
+	model : 'accountList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'salesOrder/AccountData.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	}
+});
+storeAccount.load();
+// =====================================================//
+//Store for Customer type
+//=====================================================//
+Ext.define('acquisitionList', {
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : 'listValueId',
+		type : 'int'
+	}, {
+		name : 'listValueDescription',
+		type : 'string'
+	} ]
+});
+var storeAcquisition  = Ext.create('Ext.data.Store', {
+	model : 'acquisitionList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'salesOrder/CustomerType.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	}
+});
+storeAcquisition.load();
+//=====================================================//
+Ext.require([ 'Ext.form.*', 'Ext.data.*', 'Ext.grid.*',
+      		'Ext.layout.container.Column' ]);
+
+Ext.define('crm.sfcoverdetails', {
+	extend : 'Ext.data.Model',
+	fields : [ 'salesOrderId', 'salesOrderSalesRep', 'nameOfSalesOrder', 'salesOrderDate',
+				/*'salesOrderSource',*/ /*'accountName1',*/
+	{
+		name : 'accountId',
+		mapping : 'account.accountId'
+	}, 	{
+		name : 'accountName',
+		mapping : 'account.accountName'
+	},{
+		name : 'salesRepId',
+		mapping : 'account.salesRepId'
+	},/* {
+		name : 'telephone',
+		mapping : 'account.telephone'
+	},*/ {
+		name : 'webSite',
+		mapping : 'account.webSite'
+	}, {
+		name : 'accountRating',
+		mapping : 'account.accountRating'
+	}, {
+		name : 'accountCreditLimiit',
+		mapping : 'account.accountCreditLimiit'
+	}, {
+		name : 'alternateAccountNumber',
+		mapping : 'account.alternateAccountNumber'
+	}, /*{
+		name : 'primaryContactName',
+		mapping : 'account.primaryContactName'
+	},*/ {
+		name : 'primaryTelephoneNumber',
+		mapping : 'account.primaryTelephoneNumber'
+	},/* {
+		name : 'primaryEmailId',
+		mapping : 'account.primaryEmailId'
+	},*/ {
+		name : 'billingContactName',
+		mapping : 'account.billingContactName'
+	}, {
+		name : 'billingTelephoneNumber',
+		mapping : 'account.billingTelephoneNumber'
+	}, {
+		name : 'billingContactEmailId',
+		mapping : 'account.billingContactEmailId'
+	}, {
+		name : 'billingName',
+		mapping : 'account.billingName'
+	}, {
+		name : 'billingAddress1',
+		mapping : 'account.billingAddress1'
+	}, {
+		name : 'billingAddress2',
+		mapping : 'account.billingAddress2'
+	}, {
+		name : 'billingAddress3',
+		mapping : 'account.billingAddress3'
+	}, {
+		name : 'billingPostCode',
+		mapping : 'account.billingPostCode'
+	}, {
+		name : 'companyAddress1',
+		mapping : 'account.companyAddress1'
+	}, {
+		name : 'companyAddress2',
+		mapping : 'account.companyAddress2'
+	}, {
+		name : 'companyAddress3',
+		mapping : 'account.companyAddress3'
+	}, {
+		name : 'companyPostCode',
+		mapping : 'account.companyPostCode'
+	}, {
+		name : 'bankName',
+		mapping : 'account.bankName'
+	},{
+		name : 'bankAccountName',
+		mapping : 'account.bankAccountName'
+	}, {
+		name : 'bankAccountSortCode',
+		mapping : 'account.bankAccountSortCode'
+	}, {
+		name : 'bankAccountNumber',
+		mapping : 'account.bankAccountNumber'
+	}, {
+		name : 'bankAddress1',
+		mapping : 'account.bankAddress1'
+	}, {
+		name : 'bankAddress2',
+		mapping : 'account.bankAddress2'
+	}, {
+		name : 'bankAddress3',
+		mapping : 'account.bankAddress3'
+	}, {
+		name : 'bankPostCode',
+		mapping : 'account.bankPostCode'
+	},{
+		name : 'lvacquisition',
+		mapping : 'account.lvacquisition'
+	},{
+		name : 'listValuesByCustomerTypeId',
+		mapping : 'listValuesByCustomerTypeId.listValueId'
+	},
+	'technicalContactName', 'technicalTelephoneNumber',
+	'technicalEmailId', 'installationAddress1', 'installationAddress2',
+	'installationAddress3', 'installationPostCode', {
+		name : 'accountRegistrationNumber',
+		mapping : 'account.accountRegistrationNumber'
+	}, {
+		name : 'fax',
+		mapping : 'contact.fax'
+	}, {
+		name : 'accountRegistrationDate',
+		mapping : 'account.accountRegistrationDate'
+	}, {
+		name : 'accountNoOfEmployees',
+		mapping : 'account.accountNoOfEmployees'
+	}, {
+		name : 'title',
+		mapping : 'contact.title'
+	},
+	{name : 'telephone', mapping : 'contact.telephone'},
+	{name : 'contactId', mapping : 'contact.contactId'},
+	{name : 'firstName',mapping : 'contact.contactName'},
+	{name : 'emailId', mapping : 'contact.emailId'},
+	{
+		name : 'listValuesByAddressTypeId',
+		mapping : 'listValuesByAddressTypeId.listValueId'
+	},{ 
+		name :'salesOrderLeadId', 
+		mapping :'lead.leadId' 
+	},{
+		name : 'purchaseOrderId',
+		mapping :'purchaseOrder.purchaseOrderId'
+	}]
+});
+
+/*Ext.apply(Ext.form.VTypes,{
+
+	phone: function(value,field){
+		return value.replace(/[ \-\(\)]/g,'').length == 10;
+	},
+	phoneText: 'Wrong phone number, please make sure it contains 10 digits',
+	phoneMask: /[ \d\-\(\)]/
+
+});
+*/
+Ext.define('crm.fielderror', {
+	extend : 'Ext.data.Model',
+	fields : [ 'id', 'msg' ]
+});
+
+//=====================================================//
+//Store for Technical Contact name
+//=====================================================//
+Ext.define('techContactName',{
+	extend : 'Ext.data.Model',
+	fields :[
+	         {
+	        	 name : 'contactId',
+	        	 type : 'int'
+	         },{
+	        	 name : 'contactName',
+	        	 type : 'String'
+	         },{
+	        	 name : 'telephone',
+	        	 type : 'String'
+	         },{
+	        	 name : 'emailId',
+	        	 type : 'String'
+	         }
+	         ]
+});
+var techContactNameStore = Ext.create('Ext.data.Store', {
+	model : 'techContactName',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'salesOrder/getTechContactName.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	},
+//	 autoLoad: false
+});
+techContactNameStore.load();
+//=====================================================//
+//Store for Technical Contact name
+//=====================================================//
+Ext.define('addressTypeList',{
+	extend : 'Ext.data.Model',
+	fields :[ {
+		name : 'listValueId',
+		type : 'int'
+	}, {
+		name : 'listValueDescription',
+		type : 'string'
+	} ]
+});
+var addressTypeStore = Ext.create('Ext.data.Store', {
+	model : 'addressTypeList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'salesOrder/getAddressTypeList.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	},
+//	 autoLoad: false
+});
+addressTypeStore.load();
+//=====================================================//
+Ext.define('purchaseOrderNumberList',{
+	extend : 'Ext.data.Model',
+	fields :[ {
+			name : '0',
+			type : 'int'
+	},{
+		name : '1',
+		type : 'string'
+	} ]
+});
+var purchaseOrderNumberStore = Ext.create('Ext.data.Store', {
+	model : 'purchaseOrderNumberList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'salesOrder/getPurchaseOrderNumber.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	},
+//	 autoLoad: false
+});
+purchaseOrderNumberStore.load();
+//=====================================================//
+//=====================================================//
+Ext.define('salesOrderSourceList',{
+	extend : 'Ext.data.Model',
+	fields :[ {
+			name : '0',
+			type : 'int'
+	},{
+		name : '1',
+		type : 'string'
+	} ]
+});
+var salesOrderSourceStore = Ext.create('Ext.data.Store', {
+	model : 'salesOrderSourceList',
+	proxy : {
+		type : 'ajax',
+		url : basePath +'salesOrder/getSalesOrderSource.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	},
+//	 autoLoad: false
+});
+salesOrderSourceStore.load();
+//=====================================================//
+Ext.onReady(function() {
+
+	var formPanel = new Ext.form.Panel({
+		renderTo : 'formsfcoverdetails',
+//		success : true,
+		frame : true,
+		title : 'Cover Details Form',
+		id : 'salesOrderId',	
+		width : '100%',
+		bodyPadding : 8,
+		waitMsgTarget : true,
+
+		fieldDefaults : {
+			labelAlign : 'top',
+			labelWidth : 'auto'
+			/*msgTarget : 'side'*/
+		},
+		reader : new Ext.data.reader.Json({
+			model : 'crm.sfcoverdetails',
+//			record : 'sfcoverdetails',
+//			successProperty : '@success'
+		}),
+
+		// configure how to read the XML error, using a config
+		// errorReader: {
+		// type: 'xml',
+		// model: 'crm.fielderror',
+		// record : 'field',
+		// successProperty: '@success'
+		// },
+
+		items : [ {
+			xtype : 'container',
+			autoWidth : true,
+			layout : 'vbox',
+			defaultType : 'textfield',
+			/* bodyPadding: '7 7 0', */
+
+			items : [ {
+				xtype : 'fieldset',
+				title : 'Company info',
+				style : 'margin-top:10px;',
+				bodyPadding : '7 7 7 7',
+
+				width : '100%',
+				/* border: false, */
+				collapsible : true,
+
+				items : [ {
+					xtype : 'fieldcontainer',
+
+					layout : 'hbox',
+					items : [ {
+						xtype : 'combobox',
+						fieldLabel : 'Company name',
+						emptyText : 'Type',
+						allowBlank : false,
+						typeAhead : true,
+						queryMode: 'local',
+						forceSelection:false,
+						name : 'accountId',
+						store : storeAccount,
+						displayField : 'accountName',
+						valueField : 'accountId',
+						id: 'accountId',
+						anchor : '90%',
+						emptyText : 'Select account name',
+						listeners: {
+							change: function (combo, newValue, oldValue) {
+								var value_index = storeAccount.find('accountId', newValue);
+								var record = storeAccount.getAt(value_index);
+								Ext.getCmp('accountId').setValue(record.get("accountId"));
+								Ext.getCmp('primaryTelephoneNumber').setValue(record.get("primaryTelephoneNumber"));
+								Ext.getCmp('webSite').setValue(record.get("webSite"));
+								Ext.getCmp('accountRating').setValue(record.get("accountRating"));
+								Ext.getCmp('accountCreditLimiit').setValue(record.get("accountCreditLimiit"));
+								Ext.getCmp('alternateAccountNumber').setValue(record.get("alternateAccountNumber"));
+								Ext.getCmp('emailId').setValue(record.get("emailId"));
+								Ext.getCmp('telephone').setValue(record.get("telephone"));
+//								Ext.getCmp('technicalContactName').setValue(record.get("technicalContactName"));
+//								Ext.getCmp('technicalTelephoneNumber').setValue(record.get("technicalTelephoneNumber"));
+//								Ext.getCmp('technicalEmailId').setValue(record.get("technicalEmailId"));
+								Ext.getCmp('billingContactName').setValue(record.get("billingContactName"));
+								Ext.getCmp('billingTelephoneNumber').setValue(record.get("billingTelephoneNumber"));
+								Ext.getCmp('billingContactEmailId').setValue(record.get("billingContactEmailId"));
+								Ext.getCmp('billingName').setValue(record.get("billingName"));
+								Ext.getCmp('billingAddress1').setValue(record.get("billingAddress1"));
+								Ext.getCmp('billingAddress2').setValue(record.get("billingAddress2"));
+								Ext.getCmp('billingAddress3').setValue(record.get("billingAddress3"));
+								Ext.getCmp('billingPostCode').setValue(record.get("billingPostCode"));
+								Ext.getCmp('companyAddress1').setValue(record.get("companyAddress1"));
+								Ext.getCmp('companyAddress2').setValue(record.get("companyAddress2"));
+								Ext.getCmp('companyAddress3').setValue(record.get("companyAddress3"));
+								Ext.getCmp('companyPostCode').setValue(record.get("companyPostCode"));
+								Ext.getCmp('bankName').setValue(record.get("bankName"));
+								Ext.getCmp('bankAccountName').setValue(record.get("bankAccountName"));								
+								Ext.getCmp('bankAccountSortCode').setValue(record.get("bankAccountSortCode"));
+								Ext.getCmp('bankAccountNumber').setValue(record.get("bankAccountNumber"));
+								Ext.getCmp('bankAddress1').setValue(record.get("bankAddress1"));
+								Ext.getCmp('bankAddress2').setValue(record.get("bankAddress2"));
+								Ext.getCmp('bankAddress3').setValue(record.get("bankAddress3"));
+								Ext.getCmp('bankPostCode').setValue(record.get("bankPostCode"));
+//								Ext.getCmp('listValuesByCustomerTypeId').setValue(record.get("listValuesByCustomerTypeId"));
+								Ext.getCmp('accountRegistrationDate').setValue(record.get("accountRegistrationDate"));
+								Ext.getCmp('accountRegistrationNumber').setValue(record.get("accountRegistrationNumber"));
+								Ext.getCmp('salesRepId').setValue(record.get("salesRepId"));
+								Ext.getCmp('title').setValue(record.get("title"));
+								Ext.getCmp('accountNoOfEmployees').setValue(record.get("accountNoOfEmployees"));
+								Ext.getCmp('firstName').setValue(record.get("firstName"));
+							}
+						}
+					},
+					{
+						xtype : 'textfield',
+						fieldLabel : 'Company registration number',
+						anchor : '90%',
+						style : 'margin-left:60px',
+						readOnly :true,
+						emptyText : 'Enter registration number',
+						name : 'accountRegistrationNumber',
+						id : 'accountRegistrationNumber'
+					}, {
+						xtype : 'datefield',
+						fieldLabel : 'Company established date',
+						name : 'accountRegistrationDate',
+						id : 'accountRegistrationDate',
+						style : 'margin-left:60px',
+
+						readOnly :true,
+						anchor : '90%',
+						emptyText : 'mm/dd/yy'
+					},  {
+						xtype : 'combobox',
+						fieldLabel : 'Purchase order number',
+						emptyText : 'Enter purchase order ',
+						name : 'purchaseOrderId',
+	                    store : purchaseOrderNumberStore,
+	                    typeAhead : true,
+						queryMode: 'local',
+						forceSelection:false,
+	                    displayField : '1',
+						valueField : '0',
+						style : 'margin-left:60px',
+						anchor : '90%'
+						
+					},
+
+					]
+				}, {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [ {
+						xtype : 'numberfield',
+						fieldLabel : 'Credit rating',
+						maxLength : 2,
+	                    enforceMaxLength: 2,
+	                    hideTrigger : true,
+	                //    minValue: 1,
+	                //    maxValue: 10,
+	                    name : 'accountRating',
+						id : 'accountRating',
+						anchor : '90%',
+						readOnly :true,
+						emptyText : 'Enter rating 1 to 10'
+
+					},{
+						xtype : 'datefield',
+						fieldLabel : 'Date',
+						name : 'salesOrderDate',
+						allowBlank : false,
+						style : 'margin-left:60px',
+						anchor : '90%',
+						emptyText : 'mm/dd/yy'
+					},  {
+						xtype : 'numberfield',
+						fieldLabel : 'Credit limit amount',
+						name : 'accountCreditLimiit',
+						id : 'accountCreditLimiit',
+						maxLength : 10,
+						forcePrecision: true,  
+						minValue: 0,
+						hideTrigger : true,
+						style : 'margin-left:60px',
+					//	decimalPrecision: 2,  
+	                 //   enforceMaxLength: 15,
+						//allowBlank:false,
+						anchor : '90%',
+						readOnly :true,
+						emptyText : '00.00'
+					},{
+						xtype : 'numberfield',
+						fieldLabel : 'Number of employees',
+						name : 'accountNoOfEmployees',
+						id :'accountNoOfEmployees',
+					//	enforceMaxLength: 15,
+						hideTrigger : true,
+						style : 'margin-left:60px',
+						anchor : '90%',
+						readOnly :true,
+						emptyText : 'Enter number of employees'
+					},
+					]
+				},{
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [ {
+						xtype : 'textfield',
+						fieldLabel : 'Alternate account number',
+						name : 'alternateAccountNumber',
+						id : 'alternateAccountNumber',						
+						maxLength : 20,						 
+	                    enforceMaxLength: 20,
+						hideTrigger: true,
+						anchor : '90%',
+						readOnly :true,
+						emptyText : 'Enter sales force number'
+					}, {
+						xtype : 'textfield',
+						fieldLabel : 'Sales rep',
+						name : 'salesRepId',
+						id : 'salesRepId',
+	                    style : 'margin-left:60px',
+						//allowBlank:false,
+						/*vtype:'alpha',*/
+						anchor : '90%',
+						readOnly :true,
+						emptyText : 'Select sales rep'
+					}, {
+						xtype : 'textfield',
+						fieldLabel : 'Sales person job title ',
+						name : 'title',
+						id : 'title',
+					//	maxLength : 20,
+	                 //   enforceMaxLength: 20,
+	                    style : 'margin-left:60px',
+					//	vtype:'alpha',
+						//allowBlank:false,
+						anchor : '90%',
+						readOnly :true,
+						emptyText : 'Enter sales person job title '
+					},
+					{
+						xtype : 'fieldcontainer',
+						layout : 'hbox',
+						items : [ {
+							xtype : 'combobox',
+							fieldLabel : 'Sales lead source',
+							name : 'salesOrderLeadId',
+							typeAhead : true,
+							queryMode: 'local',
+							forceSelection:false,
+							store : salesOrderSourceStore,
+			                displayField : '1',
+			                valueField : '0',
+						//	maxLength : 20,
+		                //    enforceMaxLength: 20,
+		                    style : 'margin-left:60px',
+							//allowBlank:false,
+							anchor : '90%',
+							
+							emptyText : 'Enter sales lead source'
+						}, 
+					]
+				},
+					]
+				} ]
+			},
+
+			{
+				xtype : 'fieldset',
+				title : 'Contact info',
+				style : 'margin-top:5px',
+				width : '100%',
+				border : false,
+				collapsible : true,
+
+				items : [ {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [ {
+						xtype : 'textfield',
+						fieldLabel : 'Company telephone number',	                   
+	                   	anchor : '90%',
+						emptyText : '123456789',
+						readOnly :true,
+						name : 'primaryTelephoneNumber',
+						id : 'primaryTelephoneNumber'
+					}, {
+						xtype : 'textfield',
+						fieldLabel : 'Company fax number',
+	                    style : 'margin-left:60px',
+						anchor : '90%',
+						emptyText : '23456-345678',
+						readOnly :true,
+						name : 'fax'
+					}, {
+						xtype : 'textfield',
+						fieldLabel : 'Company website',
+	                    style : 'margin-left:60px',
+						anchor : '90%',
+						emptyText : 'www.examples.com',
+						name : 'webSite',
+						readOnly :true,
+						id : 'webSite'
+					},{
+						xtype : 'combobox',
+						fieldLabel : 'Customer type',
+						anchor : '90%',
+						typeAhead : true,
+						queryMode: 'local',
+						forceSelection:false,
+						style : 'margin-left:60px',	
+						name : 'listValuesByCustomerTypeId',						
+						id : 'listValuesByCustomerTypeId',
+						store : storeAcquisition,						
+						displayField : 'listValueDescription',
+						valueField : 'listValueId',
+						emptyText : 'Select  type'
+					}, 
+					]
+				},{
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [{
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Registered address line 1',
+						emptyText : 'Enter plot no',
+						readOnly :true,
+						name : 'companyAddress1',
+						id : 'companyAddress1'
+					}, 
+
+					{
+						xtype : 'textfield',
+						anchor : '90%',
+					    style : 'margin-left:60px',
+						fieldLabel : 'Registered address line 2',
+		                emptyText : 'Enter street name',
+		                readOnly :true,
+						name : 'companyAddress2',
+						id : 'companyAddress2'
+
+
+					}, {
+						xtype : 'textfield',
+						anchor : '90%',
+						style : 'margin-left:60px',
+	                    emptyText : 'Enter area name ',
+						fieldLabel : 'Registered address line 3',
+						readOnly :true,
+						name : 'companyAddress3',
+						id : 'companyAddress3'
+
+
+					}, {
+						xtype : 'textfield',
+						anchor : '90%',
+						emptyText : '34212-2234',
+	                	style : 'margin-left:60px',
+						fieldLabel : 'Postcode',
+						readOnly :true,
+						name : 'companyPostCode',
+						id : 'companyPostCode'
+					},
+					]
+				}, ]
+			}, {
+				xtype : 'fieldset',
+				title : 'Billing Info',
+				style : 'margin-top:10px',
+				width : '100%',
+				border : false,
+				collapsible : true,
+
+				items : [  {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [ {
+						xtype : 'textfield',
+						fieldLabel : 'Billing contact name',
+						name : 'billingContactName',
+						id : 'billingContactName',
+					//	maxLength : 30,
+	               //     enforceMaxLength: 30,
+						anchor : '90%',
+						readOnly :true,
+						emptyText : 'Enter billing contact name'
+					}, {
+						xtype : 'textfield',
+						fieldLabel : 'Billing telephone number',
+					  	name : 'billingTelephoneNumber',
+						id : 'billingTelephoneNumber',
+						maxLength : 20,
+						style : 'margin-left:60px',
+	                //    enforceMaxLength: 20,
+						anchor : '90%',
+						readOnly :true,
+						emptyText : '+1-234-543-4533'
+					}, {
+						xtype : 'textfield',
+						fieldLabel : 'E-mail address',
+						anchor : '90%',
+						maxLength : 25,
+	                    enforceMaxLength: 25,
+	                    style : 'margin-left:60px',
+						emptyText : 'xxx@xxx.com',
+						readOnly :true,
+						name : 'billingContactEmailId',
+						id : 'billingContactEmailId'
+					}, {
+						xtype : 'textfield',
+						fieldLabel : 'Billing company name',
+						anchor : '90%',
+						style : 'margin-left:60px',
+						emptyText : 'Enter billing company name',
+					//	maxLength : 25,
+	                //    enforceMaxLength: 25,
+	                    readOnly :true,
+	                	name : 'billingName',
+						id : 'billingName'
+					},
+
+					]
+				},{
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [{
+						xtype : 'textfield',
+						fieldLabel : 'Billing address line 1',
+					//	maxLength : 25,
+						emptyText : 'Enter plot no',
+	                  //  enforceMaxLength: 25,
+						anchor : '90%',
+						readOnly :true,
+						name : 'billingAddress1',
+						id : 'billingAddress1'
+					},  {
+						xtype : 'textfield', 
+						fieldLabel : 'Billing address line 2',
+						anchor : '90%',
+					//	maxLength : 25,
+	                //    enforceMaxLength: 25,
+	                    style : 'margin-left:60px',
+	                    readOnly :true,
+						emptyText : 'Enter street name',
+						name : 'billingAddress2',
+						id : 'billingAddress2'
+					}, {
+						xtype : 'textfield',
+						fieldLabel : 'Billing address line 3',
+						anchor : '90%',
+						readOnly :true,
+						 style : 'margin-left:60px',
+					//	maxLength : 25,
+	               //     enforceMaxLength: 25,
+	                    emptyText : 'Enter area name ',
+						name : 'billingAddress3',
+						id : 'billingAddress3'
+					}, {
+						xtype : 'textfield',
+						anchor : '90%',
+						maxLength : 10,
+						 style : 'margin-left:60px',
+	              //      enforceMaxLength: 10,
+	                    emptyText : '34212-2234',
+						fieldLabel : 'Billing postcode',
+						readOnly :true,
+						name : 'billingPostCode',
+						id : 'billingPostCode'
+
+					}, 
+					]
+				}  ]
+			},{
+				xtype : 'fieldset',
+				title : 'Principal and technical info',
+				style : 'margin-top:10px',
+				width : '100%',
+				border : false,
+				collapsible : true,
+
+				items : [  {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [  {
+						xtype : 'textfield',
+						fieldLabel : 'Principal contact name',
+						name : 'firstName',
+						id : 'firstName',
+					//	maxLength : 25,
+					//    enforceMaxLength: 25,
+					    readOnly :true,
+						anchor : '90%',
+						emptyText : 'Enter principal contact name'
+					}, {
+						xtype : 'textfield',
+						fieldLabel : 'Principal telephone number',
+						name : 'telephone',
+						id : 'telephone',
+						style : 'margin-left:60px',
+					//	maxLength : 20,
+					//    enforceMaxLength: 20,
+						readOnly :true,
+						anchor : '90%',
+						emptyText : '12345434533',
+						hideTrigger: true
+						
+					},  
+					{
+						xtype : 'textfield',
+						fieldLabel : 'Principal e-mail address',
+						name : 'emailId',
+						id : 'emailId',
+						style : 'margin-left:60px',
+						//maxLength : 25,
+	                  //  enforceMaxLength: 25,
+	                    readOnly :true,
+						anchor : '90%',
+						emptyText : 'xxx@xxx.com'
+					},{
+						xtype : 'combobox',
+						anchor : '90%',
+						emptyText : ' Enter contact name',
+						fieldLabel : 'Technical contact name',
+						style : 'margin-left:60px',
+	                    typeAhead : true,
+						queryMode: 'local',
+						forceSelection:false,
+	                    store : techContactNameStore,
+	                    name : 'technicalContactName',
+	                    id : 'technicalContactName'
+                    	,displayField : 'contactName'
+						,valueField : 'contactId',
+						listeners: {
+							change: function (combo, newValue, oldValue) {
+								var value_index = techContactNameStore.find('contactId', newValue);
+								var record = techContactNameStore.getAt(value_index);
+								Ext.getCmp('technicalEmailId').setValue(record.get("emailId"));
+								Ext.getCmp('technicalTelephoneNumber').setValue(record.get("telephone"));
+							}
+						}
+					},
+					]
+				},{
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [ {
+						xtype : 'textfield',
+						anchor : '90%',
+						hideTrigger: true,
+						fieldLabel : 'Technical telephone number',
+						emptyText : ' Telephone number',
+						maxLength : 20,
+						emptyText : ' +1-234-543-4533',
+						readOnly :true,
+	                //    enforceMaxLength: 20,
+	                    name : 'technicalTelephoneNumber',
+	                    id : 'technicalTelephoneNumber'
+							
+
+					},{
+						xtype : 'textfield',
+						anchor : '90%',
+						readOnly :true,
+						style : 'margin-left:60px',
+						fieldLabel : 'Technical e-mail address',
+					//	maxLength : 25,
+	                //    enforceMaxLength: 25,
+	                    name : 'technicalEmailId',
+	                    id : 'technicalEmailId',
+						emptyText : 'xxx@xxx.com'
+
+
+					},]
+				} ]
+			},  {
+				xtype : 'fieldset',
+				title : 'Install or supply info',
+				style : 'margin-top:10px',
+				width : '100%',
+				border : false,
+				collapsible : true,
+
+				items : [ {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [  {
+						xtype : 'combobox',
+						anchor : '90%',
+						fieldLabel : 'Address Type',
+						emptyText : 'Select type',
+	                    typeAhead : true,
+						queryMode: 'local',
+						forceSelection:false,
+						name : 'listValuesByAddressTypeId',
+						id : 'listValuesByAddressTypeId',
+						store: addressTypeStore, 
+						displayField : 'listValueDescription',
+						valueField : 'listValueId',
+						listeners: {
+							
+							change: {
+				                   fn:function(combo, value) {
+				                	   var accountId = Ext.getCmp('accountId').getValue();
+
+				               		$.ajax({
+				               			  url: basePath + 'salesOrder/getAddressList?addressId='+combo.getValue()+"&accountId="+accountId,
+				               			  type: 'POST',
+				               			  contentType: 'application/json; charset=utf-8',
+				               			  dataType: 'json',
+				               			  async:false
+				               		  }).done(function( data ) {
+				               			  if(data != null){
+				               			Ext.getCmp('installationAddress1').setValue(data.address1);
+				               			Ext.getCmp('installationAddress2').setValue(data.address2);
+				               			Ext.getCmp('installationAddress3').setValue(data.address3);
+				               			Ext.getCmp('installationPostCode').setValue(data.postalCode);
+				               			  }
+				               		  });
+				               		
+				                  }
+				               }
+						}
+						
+					},{
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Install or supply address line 1',
+						maxLength : 25,
+						  style : 'margin-left:60px',
+						emptyText : 'Enter plot no',
+	                    enforceMaxLength: 25,
+	                    readOnly :true,
+						name : 'installationAddress1',
+						id :'installationAddress1'
+
+					},{
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Install or supply address line 2',
+						emptyText : 'Enter street name',
+						 style : 'margin-left:60px',
+						 readOnly :true,
+						name : 'installationAddress2',
+						id : 'installationAddress2'
+
+					}, 
+					{
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Install or supply address line 3',
+						 emptyText : 'Enter area name ',
+						 style : 'margin-left:60px',
+						 readOnly :true,
+						name : 'installationAddress3',
+						id : 'installationAddress3'
+
+					},]
+				},  {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [{
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Install or supply address postcode',
+	                    emptyText : '34212-2234',
+	                    readOnly :true,
+	                	name : 'installationPostCode',
+	                	id : 'installationPostCode'
+
+					},]
+				}, ]
+			},{
+				xtype : 'fieldset',
+				title : 'Bank info',
+				style : 'margin-top:10px',
+				width : '100%',
+				border : false,
+				collapsible : true,
+
+				items : [{
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [{
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Bank name',
+					//	maxLength : 25,
+						emptyText : ' Enter bank name',
+	                 //   enforceMaxLength: 25,
+	                    readOnly :true,
+						name : 'bankName',
+						id : 'bankName'
+
+
+					}, {						
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Bank account name',
+					//	maxLength : 25,
+						emptyText : ' Enter account name',
+						style : 'margin-left:60px',
+						//enforceMaxLength : 25,
+						readOnly :true,
+						name : 'bankAccountName',
+						id : 'bankAccountName'
+							
+					}, {
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Bank account number',
+						maxLength : 25,
+						emptyText : ' Enter account number',
+						 style : 'margin-left:60px',
+	                //    enforceMaxLength: 25,
+	                    readOnly :true,
+	                	name : 'bankAccountNumber',
+						id : 'bankAccountNumber'
+
+					},{
+						xtype : 'textfield',
+						anchor : '90%',
+						readOnly :true,
+						fieldLabel : 'Bank account sort code',
+						emptyText : 'Enter sort code',
+						 style : 'margin-left:60px',
+					//	maxLength : 20,
+	                 //   enforceMaxLength: 20,
+	                	name : 'bankAccountSortCode',
+						id : 'bankAccountSortCode'
+
+					},]
+				
+				} , {
+					xtype : 'fieldcontainer',
+					layout : 'hbox',
+					items : [ {
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Bank address line 1',
+						emptyText : 'Enter plot number',						 
+					//	maxLength : 25,
+	                 //   enforceMaxLength: 25,
+	                    readOnly :true,
+						name : 'bankAddress1',
+						id : 'bankAddress1'
+					}, {
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Bank address line 2',
+						style : 'margin-left:60px',
+						emptyText : 'Enter street name',
+					//	maxLength : 25,
+	                 //   enforceMaxLength: 25,
+	                    readOnly :true,
+						name : 'bankAddress2',
+						id : 'bankAddress2'
+
+
+					},{
+						xtype : 'textfield',
+						anchor : '90%',
+						fieldLabel : 'Bank address line 3',
+						style : 'margin-left:60px',
+						 emptyText : 'Enter area name ',
+					//	maxLength : 25,
+	               //     enforceMaxLength: 25,
+	                    readOnly :true,
+						name : 'bankAddress3',
+						id : 'bankAddress3'
+					},{
+						xtype : 'textfield',
+						anchor : '90%',
+					//	maxLength : 15,
+	                //    enforceMaxLength: 15,
+	                    style : 'margin-left:60px',
+	                    emptyText : '34212-2234',
+						fieldLabel : 'Bank postcode',
+						readOnly :true,
+						name : 'bankPostCode',
+						id : 'bankPostCode'
+					},]
+				}, ]
+			}/*,{
+				xtype : 'container',
+				title : 'Description',
+				style : 'margin-top:10px',
+				width : '100%',
+				border : false,
+				collapsible : true,
+
+				items : [ {
+					xtype : 'container',
+					layout : 'anchor',
+					items : [ {
+						xtype : 'textarea',
+						anchor : '98%',
+						fieldLabel : 'Description',
+						style : 'margin-left:7px',
+						name : 'compaddr1',
+						// allowBlank : false
+						allowBlank : true
+					},]
+				},]
+			},*/]
+		} ],
+
+
+			   buttons : [{
+					text : 'Save',
+					/*formBind : true,
+					disabled: false,*/
+					handler : function() {
+						//Ext.Msg.alert('Save Data', 'Cover has been created sucessfully');
+				        var form = formPanel.getForm();
+				        if (form.isValid()) {
+				        	var str = "";
+				        	if(soId != "0"){
+				        		str = "?salesOrderId=" + soId; 
+				        	}
+				        								
+							formPanel.getForm().submit({
+								url : basePath +'salesOrder/saveSalesOrderData' + str,
+								method : 'POST',
+								scope : this,
+								submitEmptyText : false,
+								waitMsg : 'Loading...',
+								success : function (f, a) {
+									 Ext.MessageBox.show({
+								           title:'Save Data',
+								           msg: a.result.message ,
+								           buttons: Ext.MessageBox.OK,
+								           fn: function(f1, a1 ){  										        	      
+								        	   location.href = basePath +'crm/salesformsdetails/cover.htm?salesOrderId=' + a.result.obj.salesOrderId;								        	   										        	    
+								           }  									          									         	        
+								       }); 
+				                },
+								failure : function (f,a) {
+									if(soId == "0"){
+										//location.href = basePath +'crm/salesformsdetails/cover.htm?salesOrderId=' + a.result.salesOrderId;
+									}
+				                }
+				                
+							});
+
+				        }					
+
+					
+					}
+				},
+				/*{
+					text : 'Update',
+					formBind : true,
+					disabled : true,
+
+					handler : function() {
+						formPanel.getForm().submit(
+								{
+									url : basePath +'salesOrder/editSalesOrderDetails/'
+											+ soId,
+									method : 'POST',
+									submitEmptyText : false,
+									waitMsg : 'Updating...'
+								});
+					}
+
+				},*/ {
+					text : 'Cancel',
+					handler : function() {
+						window.close();
+					}
+				}]
+	});
+	
+	formPanel.getForm().load({
+		id : 'salesOrderId',		
+		url : basePath +'salesOrder/' + soId + '/editSalesOrderReport.json',
+		method : 'GET',		
+		waitMsg : 'Loading...'
+	});
+
+	if((soId=='null' || soId=="" || soId==0) && accountId != 'null' && accountId !=""){
+		formPanel.getForm().load({		
+			url :  basePath + 'salesOrder/editCommonSalesOrderOnLoad.json?accountId='+accountId,
+			method : 'GET',
+			waitMsg : 'Loading...'
+		});
+	}
+	
+});

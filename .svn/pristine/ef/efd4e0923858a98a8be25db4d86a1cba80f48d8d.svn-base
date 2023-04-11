@@ -1,0 +1,354 @@
+//Store for Activity type
+//=====================================================//
+Ext.define('activityTypeList', {
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : 'listValueId',
+		type : 'int'
+	}, {
+		name : 'listValueDescription',
+		type : 'string'
+	} ]
+});
+
+var storeActivityType = Ext.create('Ext.data.Store', {
+	model : 'activityTypeList',
+	proxy : {
+		type : 'ajax',
+		url : basePath + 'generalActivity/ActivityType.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	}
+});
+storeActivityType.load();
+//=====================================================//
+Ext.define('assignedToList', {
+	extend : 'Ext.data.Model',
+	fields : [ {
+		name : '0',
+		type : 'String'
+	}, {
+		name : '1',
+		type : 'string'
+	}
+	]
+});
+
+var storeassignedToList = Ext.create('Ext.data.Store', {
+	model : 'assignedToList',
+	proxy : {
+		type : 'ajax',
+		url : basePath + 'generalActivity/getAssignedTo.json',
+		reader : {
+			root : '',
+			type : 'json'
+		}
+	}
+});
+storeassignedToList.load();
+//=====================================================//
+Ext.require([ 'Ext.form.*', 'Ext.data.*', 'Ext.grid.*',
+		'Ext.layout.container.Column', 'Ext.util.Format.*',
+		'Ext.form.field.VTypes.*' ]);
+
+Ext.define('crm.address', {
+	extend : 'Ext.data.Model',
+	fields : [
+	          {
+	        	name :'generalActivityId',
+	        	mapping : 'generalActivities.generalActivityId'
+	          },{
+		name : 'listValueDescription',
+		mapping : 'listValuesByGeneralActivityEntityType.listValueDescription'
+	},'generalActivity',{
+		name : 'lvEntityTypeId',
+		mapping : 'listValuesByGeneralActivityEntityType.listValueId'
+	},{
+		name : 'lvActivityTypeId',
+		mapping : 'listValuesByGeneralActivityType.listValueId'
+	},{
+		name : 'generalActivityAssignedTo',
+		mapping : 'contact.contactId'
+	},'entityNumber','generalActivitySubject','generalActivityStartDate','generalActivityStartTime','generalActivityEndDate'
+	,'generalActivityEndTime','generalActivityDescription']
+});
+
+Ext.define('crm.fielderror', {
+	extend : 'Ext.data.Model',
+	fields : [ 'id', 'msg' ]
+});
+
+Ext.onReady(function() {
+
+	var formPanel = new Ext.form.Panel({
+		renderTo : 'formact',
+		frame : true,
+		title : 'Activity Form',
+		width : '99.8%',
+		/*autoScroll: true,
+		height:350,*/
+		bodyPadding : 8,
+		waitMsgTarget : true,
+		
+		fieldDefaults : {
+			labelAlign : 'top',
+			labelWidth : 'auto'
+		/* msgTarget: 'side' */
+		},
+		reader : new Ext.data.reader.Json({
+			model : 'crm.address',
+//			record : 'address',
+			successProperty : '@success'
+		}),
+
+		// configure how to read the XML error, using a config
+		// errorReader: {
+		// type: 'xml',
+		// model: 'crm.fielderror',
+		// record : 'field',
+		// successProperty: '@success'
+		// },
+
+		items : [ {
+			xtype : 'container',
+			autoWidth : true,
+			layout : 'vbox',
+			title : 'address crm',
+			defaultType : 'textfield',
+			title : 'Address Form',
+			/* bodyPadding: '7 7 0', */
+
+			items : [ {
+				xtype : 'fieldset',
+				title : 'Activity info',
+				style : 'margin-top:10px;',
+				bodyPadding : '7 7 7 7',
+
+				width : '100%',
+				/* border: false, */
+				collapsible : true,
+
+				items : [ {
+					xtype : 'fieldcontainer',
+
+					layout : 'hbox',
+					items : [ 
+					         {
+					        	xtype : 'textfield',
+					        	hidden : true,
+					        	name : 'lvEntityTypeId'
+					         },
+							{
+								xtype : 'textfield',
+								fieldLabel : 'Related to',
+								readOnly : true,
+								typeAhead : true,
+								name : 'listValueDescription',
+								id : 'listValueDescription',
+								anchor : '90%',
+								emptyText : 'select module.....',
+								listeners: {
+						            render: function( component ) {
+						            	Ext.getCmp('listValueDescription').setValue(listValueDescription);
+						            }
+						        }
+								
+							},
+							{
+								xtype : 'textfield',
+								fieldLabel : 'Related number',
+								style : 'margin-left:60px',
+								name : 'entityNumber',
+								id : 'entityNumber',
+								anchor : '90%',
+								readOnly : true,
+								typeAhead : true,
+							},
+							{
+								xtype : 'combobox',
+								fieldLabel : 'Activity type',
+								allowBlank : false,
+								name : 'lvActivityTypeId',
+								style : 'margin-left:60px',
+								id : 'lvActivityTypeId',
+								store : storeActivityType,
+								displayField : 'listValueDescription',
+								valueField : 'listValueId',
+								anchor : '90%',
+								emptyText : 'select type.....',
+								
+							},
+							
+							{
+								xtype : 'combobox',
+								fieldLabel : 'Assigned to',
+//								maxLength : 25,
+								allowBlank : false,
+//								enforceMaxLength : 25,
+								style : 'margin-left:60px',
+								anchor : '90%',
+//								vtype : 'alpha',								
+								name : 'generalActivityAssignedTo',
+								id : 'generalActivityAssignedTo',
+								store : storeassignedToList,
+								displayField : '1',
+								valueField : '0'
+						},
+							
+					]
+				}
+				
+				]},
+				{
+					xtype : 'fieldset',
+					title : 'Schedule info',
+					style : 'margin-top:10px;',
+					bodyPadding : '7 7 7 7',
+
+					width : '100%',
+					/* border: false, */
+					collapsible : true,
+
+					items : [ {
+						xtype : 'fieldcontainer',
+						layout : 'anchor',
+						items : [ 
+								{
+									xtype : 'textfield',
+									fieldLabel : 'Activity subject',
+									maxLength : 50,
+									enforceMaxLength : 50,
+									anchor : '46%',
+									allowBlank : false,
+//									vtype : 'alpha',								
+									name : 'generalActivitySubject',
+									id:'generalActivitySubject'
+								},       
+
+						]},
+						{
+							xtype : 'fieldcontainer',
+							layout : 'hbox',
+							items : [ 
+									{
+										xtype : 'datefield',
+										fieldLabel : 'Start date',
+										anchor : '50%',
+										allowBlank : false,
+										name : 'generalActivityStartDate',
+										id:'generalActivityStartDate'
+									},
+									{
+										xtype : 'timefield',
+										fieldLabel : 'Start time',
+										style : 'margin-left:60px',
+										anchor : '50%',
+										allowBlank : false,
+										name : 'generalActivityStartTime',
+										id :'generalActivityStartTime'
+									},
+									{
+										xtype : 'timefield',
+										fieldLabel : 'End time',
+										style : 'margin-left:60px',
+										anchor : '50%',
+										allowBlank : false,
+										name : 'generalActivityEndTime',
+										id:'generalActivityEndTime'
+									},
+									{
+										xtype : 'datefield',
+										fieldLabel : 'End date',
+//										maxLength : 50,
+//										enforceMaxLength : 50,
+										style : 'margin-left:60px',
+										anchor : '50%',
+										allowBlank : false,
+										name : 'generalActivityEndDate'
+										,id: 'generalActivityEndDate'
+									},
+									
+									
+
+							]},
+							{
+								xtype : 'fieldcontainer',
+								layout : 'anchor',
+								items : [
+
+					{
+						xtype : 'textarea',
+						fieldLabel : 'Notes',
+						name : 'generalActivityDescription',
+						style : 'width:800px',
+						allowBlank : false,
+						id:'generalActivityDescription',
+						anchor : '100%'
+
+								},
+
+								
+
+								]
+							}
+					]
+				},
+				  
+
+			]
+		} ],
+
+		buttons : [
+				{
+					text : 'Save',
+					handler : function() {
+						var form = formPanel.getForm();
+						if (form.isValid()) {
+							var str = "";
+							if(generalActivityId != "0"){
+								str = "?generalActivityId=" + generalActivityId; 
+							}
+						formPanel.getForm().submit({
+							url : basePath + 'generalActivity/saveGeneralActivityData'+str,
+							method : 'POST',
+							scope : this,
+							submitEmptyText : false,
+							waitMsg : 'Loading...',
+							success : function(
+									f, a) { window.close();
+							},failure : function(
+									f, a) { window.close();
+							}
+						});
+					}					
+					}
+				},  {
+					text : 'Cancel',
+					handler : function() {  						
+						location.href = url; 												
+					}
+				} ]
+	});
+	
+	if(generalActivityId!=null && generalActivityId!="" && generalActivityId!=0){
+	formPanel.getForm().load({
+		id : 'generalActivityId',
+		url :  basePath + 'generalActivity/' + generalActivityId + '/editGeneralActivityReport.json',
+		method : 'GET',
+		waitMsg : 'Loading...'
+	});
+	}else if(entityNumber!=null){
+		
+
+		formPanel.getForm().load({
+			id : 'generalActivityId',
+			url :  basePath + 'generalActivity/' + generalActivityId + '/editGeneralActivityReport.json?entityNumber='+entityNumber+'&listValueDescription='+listValueDescription,
+			method : 'GET',
+			waitMsg : 'Loading...'
+		});
+		
+		
+	}
+});

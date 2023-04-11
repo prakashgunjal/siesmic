@@ -1,0 +1,23 @@
+package com.seismic.crm.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.seismic.crm.model.Product;
+import com.seismic.crm.model.ProductCategory;
+import com.seismic.crm.model.Question;
+import com.seismic.crm.model.SalesOrder;
+import com.seismic.crm.model.SoSpecQuestion;
+import com.seismic.crm.model.SoSpecQuestionResponse;
+import com.seismic.crm.model.SoSpecTask;
+import com.seismic.crm.model.SupplierProduct;
+
+public interface SoSpecTaskRepository extends JpaRepository<SoSpecTask, Long> {
+	@Query("SELECT t FROM SoSpecTask t JOIN t.soSpecQuestion q "
+			+ "WHERE q.productCategory = ?1 AND q.questionId = ?2 "
+			+ "ORDER BY t.taskSeq ASC")
+	List<SoSpecTask> tasks(ProductCategory productCategory, Long questionId);
+	
+}

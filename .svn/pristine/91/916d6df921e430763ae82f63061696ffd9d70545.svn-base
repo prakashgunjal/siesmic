@@ -1,0 +1,441 @@
+package com.seismic.crm.controller;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+
+import javax.mail.MessagingException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.mongodb.core.query.Order;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import com.seismic.crm.bean.KeyValueMap;
+import com.seismic.crm.model.Account;
+import com.seismic.crm.model.Contact;
+import com.seismic.crm.model.ListValues;
+import com.seismic.crm.model.Opportunity;
+import com.seismic.crm.model.OpportunityProductDetail;
+import com.seismic.crm.model.Product;
+import com.seismic.crm.model.Quote;
+import com.seismic.crm.model.QuoteProductDetail;
+import com.seismic.crm.model.SalesOrder;
+import com.seismic.crm.repository.AccountRepository;
+import com.seismic.crm.repository.ContactRepository;
+import com.seismic.crm.repository.ListValuesRepository;
+import com.seismic.crm.repository.OpportunityRepository;
+import com.seismic.crm.repository.ProductRepository;
+import com.seismic.crm.repository.QuoteProductDetailRepository;
+import com.seismic.crm.repository.QuoteRepository;
+import com.seismic.crm.repository.SalesOrderRepository;
+import com.seismic.crm.service.AccountService;
+import com.seismic.crm.service.MailService;
+import com.seismic.crm.service.QuoteProductDetailService;
+import com.seismic.crm.service.QuoteService;
+import com.seismic.crm.utils.ExtJSResponse;
+import com.seismic.crm.utils.MessagesUtil;
+import com.seismic.crm.utils.RandomKeyGeneration;
+import com.seismic.crm.utils.CustomDateUtil;
+import com.seismic.crm.utils.SecurityContextUtil;
+
+@Controller
+@RequestMapping(value = "/quote")
+public class QuoteController {   
+   
+	@Autowired
+	private QuoteRepository quoteRepository;
+	
+	@Autowired
+	private OpportunityRepository opportunityRepository;
+	
+	@Autowired
+	private QuoteProductDetailRepository quoteProductRepository;
+	 
+	@Autowired
+	private QuoteService quoteService;
+	
+	@Autowired
+	private QuoteProductDetailService quoteProductDetailService;
+	
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	@Autowired
+	private ListValuesRepository listValuesRepository;
+	
+	@Autowired
+	private ContactRepository contactRepository;
+	
+	@Autowired
+	private ProductRepository productRepository;
+	
+	@Autowired
+	private SalesOrderRepository salesOrderRepository;
+	
+	@Autowired
+	private AccountService accountService;
+	
+	@Autowired
+	private MailService mailService;
+	
+	@Autowired
+	private SecurityContextUtil securityContextUtil;
+	DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+	
+	@RequestMapping(value = "/quoteStatusList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> getQuoteStatusList() {			 
+		return listValuesRepository.findByListValueCategory("QuoteStatus");  
+	}
+	
+	@RequestMapping(value = "/quotePriorityList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> getQuotePriorityList() {			 
+		return listValuesRepository.findByListValueCategory("Priority");  
+	}
+	
+	@RequestMapping(value = "/shippingMethod", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> getShippingMethod(){
+		return listValuesRepository.findByListValueCategory("Shipping Method");
+	}
+	
+	@RequestMapping(value = "/quoteRating", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> getQuoteRatingList() {			 
+		return listValuesRepository.findByListValueCategory("Quote Rating");  
+	}
+	
+	@RequestMapping(value = "/AccountData", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Account> AccountData() {
+		return accountRepository.findAll();
+	}
+	@RequestMapping(value = "/ContactListData", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Contact> ContactListData() {
+		return contactRepository.findAll();
+	}
+	
+	@RequestMapping(value = "/getAccountContact", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<KeyValueMap> getAccountContact(@RequestParam(value="accountId") Long accountId){
+		
+		List<KeyValueMap> keyValueMaps= contactRepository.getAccountAndDepartment(accountId);
+		return keyValueMaps;
+	}
+	
+	@RequestMapping(value = "/salesFormNumberList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<SalesOrder> getSalesFormNumberList() {				
+		List<SalesOrder> list =  salesOrderRepository.getSalesformNumberList()  ;		
+		return list;		
+	} 
+	
+	@RequestMapping(value = "/quoteList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Quote> getAllQuoteList() {	 			
+		Sort sort= new Sort(Sort.Direction.DESC , "modifiedAt" ); 	
+		List<Quote> list =  quoteRepository.findAll(sort)  ;  		
+		return list;
+	} 
+	
+	@RequestMapping(value = "{quoteId}/editQuoteReport", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	Quote editQuoteReport(@PathVariable Long quoteId) {			
+		Quote quote = quoteService.findById(quoteId);     				
+		return quote;   
+	}
+	
+	@RequestMapping(value = "{accountId}/getQuoteListPerAccount", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Quote> getQuoteListPerAccount(@PathVariable Long accountId) {				
+		List<Quote> quoteList =null;   								
+		quoteList =  quoteService.getQuoteDetailsByAccount(accountId);	   				
+		return quoteList;      
+	}
+	
+	@RequestMapping(value = "/{quoteId}/quoteProductList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<QuoteProductDetail> getQuoteProductList(@PathVariable Long quoteId) {			
+		Quote quote = quoteService.findById(quoteId);		
+		List<QuoteProductDetail> quoteProductDetailList=null;		
+		quoteProductDetailList = quoteProductRepository.findByQuote(quote);			
+		return quoteProductDetailList;
+	}
+	             
+	@RequestMapping(value = "{quoteId}/salesFormListPerQuote", method = RequestMethod.GET , produces = "application/json" )
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<SalesOrder> salesFormListPerQuote(@PathVariable Long quoteId) {			
+		List<SalesOrder> saleOrderLIst =quoteService.getSalesFormListByQuote(quoteId); 		  
+        return saleOrderLIst; 
+	}
+	
+	@RequestMapping(value = "/opportunityNumberList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Opportunity> getOpportunityNumber() {
+		return opportunityRepository.findAll(); 
+	}
+	
+	@RequestMapping(value = "{quoteId}/createQuoteProductDetails", method = RequestMethod.POST ,produces = "application/json" )
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody 
+	ExtJSResponse createQuoteProductDetails( @PathVariable Long quoteId, @RequestBody Map<String, Object> reqMap ) throws  IOException{			
+		Long productId = Long.valueOf(reqMap.get("productId").toString());
+		String  productCategoryId= reqMap.get("productCategoryId").toString();
+		String  productSubCategoryId= reqMap.get("productSubCategoryId").toString();
+		String  quoteQuantity= reqMap.get("quoteQuantity").toString();
+		String  quoteUnitCost= reqMap.get("quoteUnitCost").toString();
+		String  quoteTotalCost=  reqMap.get("quoteTotalCost").toString() ;
+		BigDecimal quoteTotalCostBD= new BigDecimal (quoteTotalCost); 
+		String  quoteDiscount= reqMap.get("quoteDiscount").toString();		
+		String  editFlag= reqMap.get("editFlag").toString();	
+		Long productDetailId =null;
+						
+		QuoteProductDetail quoteProductDetail=null;
+		if(editFlag == "false"  ){
+			quoteProductDetail = new QuoteProductDetail();
+			System.out.println("============creating new============");
+		}else {
+		    productDetailId = Long.valueOf(reqMap.get("productDetailId").toString());
+			if(productDetailId>0 ){
+			quoteProductDetail = quoteProductDetailService.findById(productDetailId); 
+			System.out.println("========updating======= quoteProductDetail="+quoteProductDetail);
+			System.out.println("========updating=========QuoteProdDetailId="+quoteProductDetail.getQuoteProdDetailId() ); 
+			}
+		} 		
+		if(quoteId>0){ 		  
+		   quoteProductDetail.setQuote(quoteRepository.findOne(quoteId)); 
+		}
+		if(productId>0){ 		  
+		   quoteProductDetail.setProduct(productRepository.findOne(productId)); 
+		}
+		quoteProductDetail.setQuoteProductQty(quoteQuantity);
+		quoteProductDetail.setQuoteProductDiscount(quoteDiscount);
+		quoteProductDetail.setQuoteProductTotal(quoteTotalCostBD ) ;
+		quoteProductDetail.setUnitCost(quoteUnitCost);
+		
+		QuoteProductDetail quoteProductDetail1 =null;
+		quoteProductDetail1=quoteProductRepository.save(quoteProductDetail);		
+		return new ExtJSResponse(true, quoteProductDetail1);	
+	}
+	
+	@RequestMapping(value = "/randomNumberGenerationforQuoteOnLoad", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	Quote randomNumberGenerationforQuoteOnLoad() throws FileNotFoundException, IOException {
+
+		System.out.println("Inside randomNumberGenerationforQuoteOnLoad ==============================================>");
+		String key = new RandomKeyGeneration().getRandomGeneration();
+		Quote quote = new Quote();   
+		  quote.setQuoteNumber(key);           
+				
+		return quote;
+
+	}
+	
+	@RequestMapping(value = "/saveQuote", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	 ExtJSResponse saveQuote(@RequestParam(required=false) Long quoteId,@RequestParam String quoteNumber,@RequestParam String quoteDate,
+			@RequestParam Long accountId,@RequestParam Long contactId,
+			@RequestParam(required=false) Long opportunityId,
+			
+			@RequestParam(required=false) Long salesOrderId,
+			@RequestParam String quoteSalesRep,@RequestParam(required=false) Long lquoteSourceId,
+			@RequestParam(required=false) Long lquoteRatingId,
+			@RequestParam(required=false) Long lquotePriorityId,@RequestParam BigDecimal estimatedValue, @RequestParam String closeProbability, 
+			@RequestParam String estimatedCloseDate, @RequestParam String expectedDelDate,@RequestParam(required=false) Long lquoteStatusId, 
+			@RequestParam(required=false) Long lshippingMethodId, 
+			@RequestParam String shippingInstructions, @RequestParam String carrier,@RequestParam String remarks ) throws ParseException , FileNotFoundException, IOException, MessagingException {
+		
+				
+		Calendar currentDate = Calendar.getInstance();			  
+		DateFormat df = new SimpleDateFormat("MM/dd/yyyy"); 
+		String dateNow = df.format(currentDate.getTime());		
+		String message;	
+		Quote quote;  		 
+		if(quoteId == null  ){
+			quote = new Quote();
+			System.out.println("============creating new============");
+			quote.setCreatedAt( CustomDateUtil.getDateAndTime() );  
+			quote.setModifiedAt(CustomDateUtil.getDateAndTime() ); 
+			quote.setCreatedBy(securityContextUtil.getUsername());
+			quote.setModifiedBy(securityContextUtil.getUsername());
+		}else {
+			quote = quoteService.findById(quoteId);
+			System.out.println("========updating=======quoteId="+quoteId);
+			System.out.println("========updating=========quote="+quote); 			
+			quote.setModifiedAt(CustomDateUtil.getDateAndTime() ); 	
+			quote.setModifiedBy(securityContextUtil.getUsername());
+		}			
+		quote.setQuoteNumber(quoteNumber);    
+		quote.setQuoteDate( new Date(df.parse(quoteDate).getTime()) );  
+		
+		Account account;
+		if(accountId!=null && accountId>0 ){
+			account = accountRepository.findOne(accountId );		
+		}else{
+			account = new Account();
+		}
+		quote.setAccount(account); 
+		
+		if(salesOrderId!=null && salesOrderId>0){ 		
+		   SalesOrder salesOrder = salesOrderRepository.findOne(salesOrderId);		   
+		   quote.setSalesOrder(salesOrder);  
+		}else{
+	    	quote.setSalesOrder(null);        
+	    }
+	
+		Contact contact;
+		if(contactId!=null && contactId>0 ){
+			contact = contactRepository.findOne(contactId );	
+			quote.setContactByContactId(contact);
+		}else{
+			contact = new Contact();
+		}
+		Opportunity opportunity;
+		if(opportunityId!=null && opportunityId>0 ){
+			opportunity = opportunityRepository.findOne(opportunityId );		
+			quote.setOpportunity(opportunity); 
+		}else{
+			quote.setOpportunity(null);    
+		}		
+		
+		quote.setContactByQuoteSalesRepId(contactRepository.findOne(Long.parseLong(quoteSalesRep.toString()) ));  
+		if (lquoteSourceId!=null && lquoteSourceId > 0) {
+			ListValues listValuesBySourceId = listValuesRepository.findOne(lquoteSourceId);
+			quote.setListValuesByQuoteSourceId(listValuesBySourceId);            					
+	    }else{
+	    	quote.setListValuesByQuoteSourceId(null);
+	    }
+		
+		if (lquoteRatingId!=null && lquoteRatingId > 0) {
+			ListValues listValuesByQuoteRatingId = listValuesRepository.findOne(lquoteRatingId);
+			quote.setListValuesByQuoteRatingId(listValuesByQuoteRatingId);     					
+	    }else{
+	    	quote.setListValuesByQuoteRatingId(null);
+	    }
+		
+		if (lquotePriorityId!=null && lquotePriorityId > 0) {
+			ListValues listValuesByPriorityId = listValuesRepository.findOne(lquotePriorityId);
+			quote.setListValuesByQuotePriorityId(listValuesByPriorityId);          					
+	    }else{
+	    	quote.setListValuesByQuotePriorityId(null);
+	    }
+		quote.setEstimatedValue(estimatedValue); 
+		quote.setCloseProbability(closeProbability); 
+		if(!estimatedCloseDate.isEmpty() ){
+		quote.setEstimatedCloseDate(new Date(df.parse(estimatedCloseDate).getTime()) ); 
+		}
+		if(!expectedDelDate.isEmpty() ){
+		quote.setExpectedDelDate(new Date(df.parse(expectedDelDate).getTime()) ); 
+		}               
+		if (lquoteStatusId!=null &&  lquoteStatusId > 0) {
+			ListValues listValuesByStatusId = listValuesRepository.findOne(lquoteStatusId);
+			quote.setListValuesByQuoteStatusId(listValuesByStatusId);             					
+	    }else{
+	    	quote.setListValuesByQuoteStatusId(null);
+	    }
+		
+		if (lshippingMethodId!=null &&  lshippingMethodId > 0) {
+			ListValues listValuesByShippingMethod = listValuesRepository.findOne(lshippingMethodId);
+			quote.setListValuesByShippingMethod(listValuesByShippingMethod);     					
+	    }else{
+	    	quote.setListValuesByShippingMethod(null);
+	    }
+		
+		quote.setShippingInstructions(shippingInstructions); 
+		quote.setCarrier(carrier);
+		quote.setRemarks(remarks); 
+		System.out.println("lquoteSourceId---------->" + lquoteSourceId);      
+		System.out.println("lquotePriorityId-------->" + lquotePriorityId);
+		System.out.println("lquoteStatusId---------->" + lquoteStatusId);
+		
+		System.out.println("CreatedDate----------->" + quote.getCreatedAt());
+		System.out.println("ModifiedDate---------->" + quote.getModifiedAt());
+		System.out.println("quoteDate---------->" + quote.getQuoteDate() );
+		if(quoteId==null ){          			
+		    message= MessagesUtil.showMessage("Quote", quoteNumber,  "Created" , "Successfully" ) ;			
+		}else{					
+			message= MessagesUtil.showMessage("Quote", quoteNumber,  "Updated" , "Successfully" ) ;
+		}		
+		Quote newQuote = quoteService.saveQuote(quote);
+		try{
+		mailService.sendEmaildata(newQuote.getQuoteNumber(),"Quote");
+		}catch(Exception e){		    	
+			return new ExtJSResponse(true, newQuote,message );	
+	    }
+		return new ExtJSResponse(true, newQuote,message );
+	}
+	
+	@RequestMapping(value = "getSalesRep", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<KeyValueMap> getSalesRep(@RequestParam Long accountId){
+		Account account= accountRepository.findOne(accountId);
+		List<KeyValueMap> keyValueMaps = new ArrayList<KeyValueMap>();
+		if(account.getContactGroup() != null){
+			keyValueMaps = contactRepository.getContactSalesRep(account.getContactGroup().getContactGroupId());
+		}
+		
+		return keyValueMaps;
+	}
+	
+	@RequestMapping(value = "/editCommonquoteOnLoad", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	Quote editCommonquoteOnLoad(@RequestParam(required = false) Long accountId) throws FileNotFoundException, IOException {
+
+		Quote quote = new Quote();   
+		if(accountId!=null){
+			quote.setAccount(accountRepository.findOne(accountId));
+		}
+		quote.setQuoteNumber(RandomKeyGeneration.getRandomGeneration());
+		return quote;
+
+	}
+	
+	@RequestMapping(value = "/viewQuoteByAccountList", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Quote> viewQuoteByAccountList(@RequestParam Long accountId) {	 			
+		Sort sort= new Sort(Sort.Direction.DESC , "modifiedAt" ); 
+		Account account = accountRepository.findOne(accountId);
+		List<Quote> list =  quoteRepository.findByAccount(account,sort)  ;  		
+		return list;
+	} 
+}
+

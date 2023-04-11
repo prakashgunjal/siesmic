@@ -1,0 +1,35 @@
+package com.seismic.crm.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.seismic.crm.model.ChecklistMap;
+import com.seismic.crm.model.Product;
+import com.seismic.crm.model.ProductCategory;
+import com.seismic.crm.model.Question;
+import com.seismic.crm.model.SalesOrder;
+import com.seismic.crm.model.SoSpecQuestion;
+import com.seismic.crm.model.SoSpecQuestionResponse;
+import com.seismic.crm.model.SoSpecTask;
+import com.seismic.crm.model.SoSpecTaskResponse;
+import com.seismic.crm.model.SpecificationMap;
+import com.seismic.crm.model.SupplierProduct;
+import com.seismic.crm.model.Task;
+
+public interface ChecklistMapRepository extends JpaRepository<ChecklistMap, Long> {
+
+	@Query("SELECT d FROM ChecklistDocument d LEFT JOIN FETCH d.checklistMaps m "
+			+ "LEFT JOIN FETCH m.checklistDocument d LEFT JOIN FETCH d.checklist"
+			+ "tr.soSpecTask t WHERE qr = ?1 AND t.taskId = ?2")
+	public List<SoSpecTaskResponse> docResponses(SoSpecQuestionResponse quesResponse, Long taskId);	
+
+	@Query("SELECT m FROM ChecklistMap m LEFT JOIN FETCH m.checklistProductCategory mcat "
+			+ "LEFT JOIN FETCH m.checklistDocument d LEFT JOIN FETCH d.checklist"
+			+ "tr.soSpecTask t WHERE qr = ?1 AND t.taskId = ?2")
+	public List<SoSpecTaskResponse> mapProductCategories(SoSpecQuestionResponse quesResponse, Long taskId);	
+
+}

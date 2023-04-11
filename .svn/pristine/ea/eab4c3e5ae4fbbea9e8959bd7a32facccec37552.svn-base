@@ -1,0 +1,16 @@
+package com.seismic.crm.service;
+
+import java.util.List;
+
+import com.seismic.crm.model.Account;
+import com.seismic.crm.model.SalesOrder;
+
+public interface AccountService {
+	
+	
+	Account findById(Long accountID);
+	Account saveAccount(Account account);
+	List<SalesOrder> getSalesFormListByAccount(Long accountId); 
+	
+	
+}

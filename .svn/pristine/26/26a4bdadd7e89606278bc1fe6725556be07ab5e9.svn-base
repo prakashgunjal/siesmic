@@ -1,0 +1,271 @@
+         $(document).ready(function () {
+             var theme = getDemoTheme();
+                        
+             var source =
+            {          
+                  		 
+            	datatype: "json",
+             	url : basePath+"address/"+contactNumber+"/getAddressListPerContact.json",
+             	
+                datafields:
+                [
+                 	{name: 'addressId'},
+                 	{name: 'contactId', map : 'contact>contactId'},
+                	{name: 'contactNumber', map : 'contact>contactNumber'},
+                 	{ name: 'listValueDescription', map : 'contact>listValues>listValueDescription', type: 'string' },
+                    { name: 'contactName',map : 'contact>contactName', type: 'string' },
+                    { name: 'address1', type: 'string' },
+					{ name: 'address2', type: 'string' },
+					{ name: 'address3', type: 'string' },			
+					{ name: 'postalCode', type: 'string' }
+					                   
+                ],id: 'addressId',
+                updaterow: function (rowid, rowdata, commit) {
+                    // synchronize with the server - send update command   
+                    commit(true);
+                }
+            };
+
+             var dataAdapter = new $.jqx.dataAdapter(source);
+             var columnCheckBox = null;
+             var updatingCheckState = false;
+             
+             var tooltiprenderer = function (element) {
+                 $(element).jqxTooltip({position: 'mouse', content: $(element).text() });
+             }
+
+             // initialize jqxGrid. Disable the built-in selection.
+            $("#commonaaddressgrid").jqxGrid(
+            {
+            	source: dataAdapter,
+                theme: theme,
+                showfilterrow: true,
+                filterable: true,
+                pageable: true,
+                sortable: true,
+                columnsresize: true,
+                autoheight: true,
+                altrows: true,
+                showstatusbar: true,
+                width:1248,
+                columns: [
+                  { text: 'Type', editable: false, datafield: 'listValueDescription', width: 200, rendered: tooltiprenderer },                 
+                  { text: 'Address line 1', editable: false, datafield: 'address1', width: 200, rendered: tooltiprenderer },
+                  { text: 'Address line 2', editable: false, datafield: 'address2', width: 200, rendered: tooltiprenderer },
+                  { text: 'Address line 3', editable: false, datafield: 'address3', width: 200, rendered: tooltiprenderer },              
+				  { text: 'Postcode', editable: false, datafield: 'postalCode', width: 200, rendered: tooltiprenderer }
+                  	  
+               ],
+               renderstatusbar: function (statusbar) {
+                   // appends buttons to the status bar.
+                   var container = $("<div style='overflow: hidden; position: relative; margin: 5px;'></div>");
+                   var addButton = $("<div style='float: left; margin-left: 5px;'><img style='position: relative; margin-top: 2px;' src='../../image/add.png'/><span style='margin-left: 4px; position: relative; top: 2px;'>Add</span></div>");
+                   /*var deleteButton = $("<div style='float: left; margin-left: 5px;'><img style='position: relative; margin-top: 2px;' src='../../image/close.png'/><span style='margin-left: 4px; position: relative; top: 2px;'>Delete</span></div>");*/
+                   var editButton = $("<div style='float: left; margin-left: 5px;'><img style='position: relative; margin-top: 2px;' src='../../image/miniedit.png'/><span style='margin-left: 4px; position: relative; top: 2px;'>Edit</span></div>");
+                   
+                   container.append(addButton);
+                   /*container.append(deleteButton);*/
+                   container.append(editButton);
+         
+                   statusbar.append(container);
+                   addButton.jqxButton({ theme: theme, width: 60, height: 20 });
+                   /*deleteButton.jqxButton({ theme: theme, width: 65, height: 20 });*/
+                   editButton.jqxButton({ theme: theme, width: 65, height: 20 });
+                   
+                   // add new row.
+                   addButton.click(function (event) {
+                	   var newwindow;                	   
+                	   window.open("../../commonjsppages/address/address.htm?contactId=" + contactId  , name="_parent");                	                     	
+                	   if (window.focus) {newwindow.focus()}
+                   });
+                   
+                   // delete selected row.
+                   /*deleteButton.click(function (event) {
+                       var selectedrowindex = $("#leadgrid").jqxGrid('getselectedrowindex');
+                       var rowscount = $("#leadgrid").jqxGrid('getdatainformation').rowscount;
+                       if (selectedrowindex >= 0 && selectedrowindex < rowscount) {
+                           var id = $("#leadgrid").jqxGrid('getrowid', selectedrowindex);
+                           $("#leadgrid").jqxGrid('deleterow', id);
+                       }
+                   });*/
+                   editButton.click(function (event) {
+                	    var newwindow;                	   
+                	    var args = event.args;
+                        var rowindex = $("#commonaaddressgrid").jqxGrid('getselectedrowindex');
+                        var offset = $("#commonaaddressgrid").offset();
+                        var dataRecord = $('#commonaaddressgrid').jqxGrid('getrowdata', rowindex);
+                        if(dataRecord!=null){  
+              			var addId = dataRecord.addressId;
+                        window.open("../../commonjsppages/address/address.htm?addressId=" + addId, name="_parent");
+                        }else{
+                  	    	alert("Please select Record for Edit");
+                  	    }                 	  
+                   });
+               },
+            });
+            
+            $("#commonaaddressgrid").on('columnresized', function (event) {
+                var column = event.args.columntext;
+                var newwidth = event.args.newwidth
+                var oldwidth = event.args.oldwidth;
+                
+            });
+
+            var updatePageState = function (pagenum) {
+                var datainfo = $("#commonaaddressgrid").jqxGrid('getdatainformation');
+                var pagenum = datainfo.paginginformation.pagenum;
+                var pagesize = datainfo.paginginformation.pagesize;
+                var startrow = pagenum * pagesize;
+                // select the rows on the page.
+                $("#commonaaddressgrid").jqxGrid('beginupdate');
+                var checkedItemsCount = 0;
+                for (var i = startrow; i < startrow + pagesize; i++) {
+                    var boundindex = $("#commonaaddressgrid").jqxGrid('getrowboundindex', i);
+                    var value = $("#commonaaddressgrid").jqxGrid('getcellvalue', boundindex, 'available');
+                    if (value) checkedItemsCount++;
+                    if (value) {
+                        $("#commonaaddressgrid").jqxGrid('selectrow', boundindex);
+                    }
+                    else {
+                        $("#commonaaddressgrid").jqxGrid('unselectrow', boundindex);
+                    }
+                }
+
+                $("#commonaaddressgrid").jqxGrid('endupdate');
+                if (checkedItemsCount == pagesize) {
+                    columnCheckBox.jqxCheckBox({ checked: true });
+                }
+                else if (checkedItemsCount == 0) {
+                    columnCheckBox.jqxCheckBox({ checked: false });
+                }
+                else {
+                    columnCheckBox.jqxCheckBox({ checked: null });
+                }
+            }
+
+            // update the selection after sort.
+            $("#commonaaddressgrid").on('sort', function (event) {
+                updatePageState();
+            });
+
+             // update the selection after page change.
+            $("#commonaaddressgrid").on('pagechanged', function (event) {
+                 updatePageState();
+             });
+
+             // select or unselect rows when a checkbox is checked or unchecked. 
+             $("#commonaaddressgrid").on('cellvaluechanged', function (event) {
+                 if (event.args.value) {
+                     $("#commonaaddressgrid").jqxGrid('selectrow', event.args.rowindex);
+                 }
+                 else {
+                     $("#commonaaddressgrid").jqxGrid('unselectrow', event.args.rowindex);
+                 }
+
+                 // update the state of the column's checkbox. When all checkboxes on the displayed page are checked, we need to check column's checkbox. We uncheck it,
+                 // when there are no checked checkboxes on the page and set it to intederminate state when there is at least one checkbox checked on the page.  
+                 if (columnCheckBox) {
+                     var datainfo = $("#commonaaddressgrid").jqxGrid('getdatainformation');
+                     var pagesize = datainfo.paginginformation.pagesize;
+                     var pagenum = datainfo.paginginformation.pagenum;
+                     var selectedRows = $("#commonaaddressgrid").jqxGrid('getselectedrowindexes');
+                     var state = false;
+                     var count = 0;
+                     $.each(selectedRows, function () {
+                         if (pagenum * pagesize <= this && this < pagenum * pagesize + pagesize) {
+                             count++;
+                         }
+                     });
+
+                     if (count != 0) state = null;
+                     if (count == pagesize) state = true;
+                     if (count == 0) state = false;
+                     
+                     updatingCheckState = true;
+                     $(columnCheckBox).jqxCheckBox({ checked: state });
+
+                     updatingCheckState = false;
+                 }
+             });
+             
+             var contextMenu = $("#Menu4").jqxMenu({ width: 200, height: 30, autoOpenPopup: false, mode: 'popup', theme: theme });
+
+             $("#commonaaddressgrid").on('contextmenu', function () {
+                 return false;
+             });
+             function changeContent(url, window) {
+                 window.jqxWindow('setContent', 'Loading...');
+                 $.ajax({
+                     dataType: 'jsonp',
+                     url: url,
+                     success: function (data) {
+                         window.jqxWindow('setContent', data[0].text);
+                     },
+                     error: function () {
+                         window.jqxWindow('setContent', 'Error');
+                     }
+                 });
+             }
+ 			// handle context menu clicks.
+             $("#Menu4").on('itemclick', function (event) {
+            /*	var newwindow;
+                newwindow=window.open('../../commonjsppages/address/address.jsp','_parent','height=400,width=1000');   // it takes lotsof more arguments you can use as per your needs
+//          	  
+          	    
+          	    if (window.focus) {newwindow.focus()}*/
+            	 
+            	 var args = event.args;
+                 var rowindex = $("#commonaaddressgrid").jqxGrid('getselectedrowindex');
+                 var offset = $("#commonaaddressgrid").offset();
+                 var dataRecord = $('#commonaaddressgrid').jqxGrid('getrowdata', rowindex);
+       			 var addId = dataRecord.addressId;
+                  window.open("../../commonjsppages/address/address.htm?addressId=" + addId, name="_blank");
+            	 });
+             
+ 			
+ 			$("#commonaaddressgrid").on('rowclick', function (event) {
+                 if (event.args.rightclick) {
+                     $("#commonaaddressgrid").jqxGrid('selectrow', event.args.rowindex);
+                     var scrollTop = $(window).scrollTop();
+                     var scrollLeft = $(window).scrollLeft();
+                     contextMenu.jqxMenu('open', parseInt(event.args.originalEvent.clientX) + 5 + scrollLeft, parseInt(event.args.originalEvent.clientY) + 5 + scrollTop);
+
+                     return false;
+                 }
+             });
+ 			
+
+         // create jqxWindow.
+            $("#jqxwindow4").jqxWindow({ resizable: false, theme: 'shinyblack', autoOpen: false, width: 400, maxWidth:1200, height: 400, cancelButton: $('#addCancel') });
+            $("#addPerson").jqxInput({ theme: theme, width: '200', height: '20px' });
+            $("#addLine1").jqxInput({ theme: theme, width: '200', height: '20px' });
+            $("#addLine2").jqxInput({ theme: theme, width: '200', height: '20px' });
+            $("#addLine3").jqxInput({ theme: theme, width: '200', height: '20px' });
+            $("#addLine4").jqxInput({ theme: theme, width: '200', height: '20px' });
+            $("#addPostcode").jqxInput({ theme: theme, width: '200', height: '20px' });
+            $("#addPhone").jqxInput({ theme: theme, width: '200', height: '20px' });
+            $("#addMobile").jqxInput({ theme: theme, width: '200', height: '20px' });
+            $("#addEmail").jqxInput({ theme: theme, width: '200', height: '20px' });
+            $("#addType").jqxComboBox({width: '200', height: '25px', theme: theme });
+            $("#addSave").jqxButton({ theme: theme, width: '100' });
+            $("#addCancel").jqxButton({ theme: theme, width: '100' });
+            
+            $('#addSave').on('click', function () {
+                $('#addressForm').jqxValidator('validate');
+                /*$('#addPerson').jqxInput('refresh');*/
+            });
+            
+            
+         // initialize validator.
+            $('#addressForm').jqxValidator({
+             rules: [
+                    { input: '#addType', message: 'Field is required!', action: 'keyup, blur', rule: 'required' },
+                    { input: '#addPerson', message: 'Field is required!', action: 'keyup, blur', rule: 'required' },
+                    { input: '#addLine1', message: 'Field is required', action: 'keyup, blur', rule: 'required' },
+                    { input: '#addLine2', message: 'Field is required', action: 'keyup, blur', rule: 'required' },
+                    { input: '#addLine3', message: 'Field is required', action: 'keyup, blur', rule: 'required' },
+                    { input: '#addLine4', message: 'Field is required', action: 'keyup, blur', rule: 'required' },
+                    { input: '#addPhone', message: 'Field is required', action: 'keyup, blur', rule: 'required' }], theme: theme
+            });
+             
+         });

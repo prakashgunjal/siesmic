@@ -1,0 +1,17 @@
+package com.seismic.crm.service;
+
+import java.util.List;
+
+import com.seismic.crm.bean.KeyValueMap;
+import com.seismic.crm.model.Lead;
+
+public interface LeadService {
+	public List<Lead> getLeadDetails();
+
+	public List<KeyValueMap> getLeadName(Long accountId);
+
+	public Lead findById(Long leadId);
+
+	public Lead saveLead(Lead lead); 
+  
+}

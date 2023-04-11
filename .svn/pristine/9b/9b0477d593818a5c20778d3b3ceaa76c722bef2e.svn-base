@@ -1,0 +1,60 @@
+package com.seismic.crm.service;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.seismic.crm.model.Account;
+import com.seismic.crm.model.Contact;
+import com.seismic.crm.repository.AccountRepository;
+import com.seismic.crm.repository.SalesOrderRepository;
+import com.seismic.crm.model.SalesOrder;
+
+@Service
+public class AccountServiceImpl implements AccountService {
+
+	@Resource
+	private AccountRepository accountRepository;   
+	
+	@Resource
+	private SalesOrderRepository salesOrderRepository; 
+   	 
+	@Override
+	@Transactional
+	public Account saveAccount(Account account) {	        	                       
+				return accountRepository.save(account);		
+	}
+	   
+    
+	@Override
+	@Transactional
+	public Account findById(Long accountID) {
+		return accountRepository.findOne(accountID);
+	}   
+	
+	@Override
+	@Transactional
+	public List<SalesOrder> getSalesFormListByAccount(Long accountId) {			
+		Account account = accountRepository.findOne(accountId);	 	
+		return  salesOrderRepository.findByAccountAndSoType(account,"salesForm");   				
+	}  
+		
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

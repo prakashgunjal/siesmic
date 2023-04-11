@@ -1,0 +1,26 @@
+{
+  "contractrenew": {
+    "contranme": "proddisnme",
+    "contradate": "premiseswingdesc",
+    "contratype": "kripa11",
+    "contrarenenddate": "kripa11",
+    "contraaccnme": "vkripa11@sencha.com",
+    "contracussigndate": "OH1",
+    "contrasubtype": "OH13",
+    "contrasuppacktype": "09/11/2013",
+    "contrareqallo": "09/11/2013",
+    "contrasupreqcarr": "bbbb",
+	"contrabillfreq": "bbbb",
+	"contraamt": "bbbb",
+	"contrastatus": "bbbb",
+	"contradiscount": "bbbb",
+	"contraenddate": "bbbb",
+	"contrareqbal": "bbbb",
+	"purordtracknum": "bbbb",
+	"receserisrt": "bbbb",
+	"purordpayterm": "bbbb",
+	"purordordcurre": "bbbb",
+	"purordfreter": "bbbb",
+	
+  }
+}

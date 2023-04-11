@@ -1,0 +1,90 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:sec="http://www.springframework.org/schema/security"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+  	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+  	xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+    http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <bean id="methodExpressionHandler" class="org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler">
+        <property name="permissionEvaluator" ref="permissionEvaluator"/>
+        <property name="permissionCacheOptimizer">
+            <bean class="org.springframework.security.acls.AclPermissionCacheOptimizer">
+                <constructor-arg ref="aclService"/>
+            </bean>
+        </property>
+    </bean>
+
+	<bean id="webSecurityExpressionHandler" class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler">
+	    <property name="permissionEvaluator" ref="permissionEvaluator" />
+	</bean>
+
+    <bean id="permissionEvaluator" class="org.springframework.security.acls.AclPermissionEvaluator">
+        <constructor-arg ref="aclService"/>
+    </bean>
+
+	<sec:global-method-security pre-post-annotations="enabled">
+        <sec:expression-handler ref="methodExpressionHandler"/>
+    </sec:global-method-security>
+
+	<sec:http pattern="/fonts/**" security="none"/>
+	<sec:http pattern="/css/**" security="none"/>
+	<sec:http pattern="/images/**" security="none"/>
+	<sec:http pattern="/img/**" security="none"/>
+	<sec:http pattern="/gridjs/**" security="none"/>
+	<sec:http pattern="/js/**" security="none"/>
+	<sec:http pattern="/jqgrid/**" security="none"/>
+	<sec:http pattern="/jqwidgets/**" security="none"/>
+	<sec:http pattern="/scripts/**" security="none"/>
+	<sec:http pattern="/menujs/**" security="none"/>
+	<sec:http pattern="/login.jsp*" security="none"/>
+	    	
+    <sec:http use-expressions="true">
+		<sec:expression-handler ref="webSecurityExpressionHandler"/>
+        <!-- <sec:intercept-url pattern="/salesOrder/**" access="hasPermission(0,'Module_SalesForms','read')" />
+        <sec:intercept-url pattern="/crm/crm.jsp" access="hasPermission(0,'Module_SalesForms','read')" />
+        <sec:intercept-url pattern="/crm/salesformsdetails/**" access="hasPermission(0,'Module_SalesForms','read')" /> -->
+        <sec:intercept-url pattern="/**" access="authenticated" />
+        <sec:form-login login-page="/login.jsp" default-target-url="/home/home.jsp" always-use-default-target='true'/>
+        <sec:logout />
+    </sec:http>
+
+    <sec:authentication-manager>
+        <sec:authentication-provider ref='adAuthenticationProvider' />
+    </sec:authentication-manager>
+    
+<!-- <bean id="contextSource"
+        class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
+  <constructor-arg value="ldap://monkeymachine:389/dc=aspl,dc=com"/>
+  <property name="userDn" value="cn=john,dc=aspl,dc=com"/>
+  <property name="password" value="password"/>
+</bean> -->
+
+	<bean id="contextSource"
+	        class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
+	  <constructor-arg value="ldap://${DirectoryServerIP}:${DirectoryServerPort}/dc=${DirectoryServerDomainPart1},dc=${DirectoryServerDomainPart2}"/>
+	  <property name="userDn" value="cn=${DirectoryServerUserId},dc=${DirectoryServerDomainPart1},dc=${DirectoryServerDomainPart2}"/>
+	  <property name="password" value="${DirectoryServerPwd}"/>
+	</bean>
+
+	<!-- <bean id="contextSource" class="org.springframework.ldap.core.support.LdapContextSource">
+	    <beans:property name="url" value="ldap://zzz.xxx.yyy:389" />
+	    <beans:property name="base" value="dc=xxx,dc=yyy"/>
+	    <beans:property name="userDn" value="cn=user" />
+	    <beans:property name="password" value="password" />
+	</beans:bean> -->
+	<bean id="ldapTemplate" class="org.springframework.ldap.core.LdapTemplate">
+	    <constructor-arg ref="contextSource" />
+	</bean>
+
+    <bean id="adAuthenticationProvider"
+	  class="org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider">
+	    <constructor-arg value="${DirectoryServerDomainPart1}.${DirectoryServerDomainPart2}" />
+	    <constructor-arg value="ldap://${DirectoryServerIP}:${DirectoryServerPort}/"/>
+	    <property name="convertSubErrorCodesToExceptions" value="true"/>
+	</bean>
+	
+</beans>

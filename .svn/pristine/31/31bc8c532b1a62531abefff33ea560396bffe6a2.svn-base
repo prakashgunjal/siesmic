@@ -1,0 +1,40 @@
+package com.seismic.crm.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.seismic.crm.bean.KeyValueMap;
+import com.seismic.crm.model.Lead;
+import com.seismic.crm.repository.LeadRepository;
+@Service
+public class LeadServiceImpl implements LeadService{
+	@Autowired
+	private LeadRepository leadRepository;
+
+	@Override
+	public List<Lead> getLeadDetails() {
+		return leadRepository.findAll();
+	}
+
+	@Override
+	public List<KeyValueMap> getLeadName(Long accountId) {
+		
+		return leadRepository.getLeadName(accountId);
+	}
+
+	@Override
+	@Transactional
+	public Lead findById(Long leadId) {
+		return leadRepository.findOne(leadId);			
+	}
+
+	@Override
+	@Transactional
+	public Lead saveLead(Lead lead) {
+		return leadRepository.save(lead);			
+	}
+
+}

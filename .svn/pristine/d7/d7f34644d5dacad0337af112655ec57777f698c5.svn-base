@@ -1,0 +1,472 @@
+package com.seismic.crm.controller;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.mail.MessagingException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.seismic.crm.bean.KeyValueMap;
+import com.seismic.crm.model.Account;
+import com.seismic.crm.model.Address;
+import com.seismic.crm.model.Contact;
+import com.seismic.crm.model.ContactGroup;
+import com.seismic.crm.model.ListValues;
+import com.seismic.crm.model.Quote;
+import com.seismic.crm.repository.AccountRepository;
+import com.seismic.crm.repository.ContactGroupRepository;
+import com.seismic.crm.repository.ContactRepository;
+import com.seismic.crm.repository.ListValuesRepository;
+import com.seismic.crm.service.ContactService;
+import com.seismic.crm.service.MailService;
+import com.seismic.crm.utils.CustomDateUtil;
+import com.seismic.crm.utils.ExtJSResponse;
+import com.seismic.crm.utils.MessagesUtil;
+import com.seismic.crm.utils.RandomKeyGeneration;
+import com.seismic.crm.utils.SecurityContextUtil;
+
+@Controller
+@RequestMapping(value = "/contact")
+public class ContactController {
+
+	@Autowired
+	private ContactService contactService;
+
+	@Autowired
+	private ContactRepository contactRepository;
+
+	@Autowired
+	private ContactGroupRepository contactGroupRepository;
+
+	@Autowired
+	private ListValuesRepository listValuesRepository;
+
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	@Autowired
+	private MailService mailService;
+	
+	@Autowired
+	private CustomDateUtil customDateUtil;
+	
+	@Autowired
+	private SecurityContextUtil securityContextUtil;
+
+	DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+
+	@RequestMapping(value = { "/contactDetail" }, method = RequestMethod.GET)
+	public ModelAndView contactDetailsPage() {
+		ModelAndView mav = new ModelAndView("contacts");
+		List<Contact> contactList = contactService.getContactDetails();
+		mav.addObject("contactList", contactList);
+		return mav;
+	}
+
+	
+	@RequestMapping(value = "/contactReport", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Contact> contactReport() {		
+		Sort sort= new Sort(Sort.Direction.DESC , "modifiedAt" ); 	
+		List<Contact> list =  contactRepository.findAll(sort)  ;  		
+		return list;
+		
+	}
+
+	
+	@RequestMapping(value = "/createContact", method = RequestMethod.GET)
+	public ModelAndView newContactPage() {
+		System.out.println("Inside create Contact==============================================>");
+		Contact contact = new Contact();
+		ModelAndView mav = new ModelAndView("contacts/createditcontacts",
+				"contact", contact);
+		return mav;
+	}
+	
+	       
+	@RequestMapping(value = "{accountId}/getContactListPerAccount", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Contact> getContactListPerAccount(@PathVariable Long accountId) {	
+		List<Contact> contactList =null;   								
+		contactList =  contactService.getContactDetailsByAccount(accountId);	   
+			
+		return contactList;      
+	}
+		 
+	@RequestMapping(value = "/saveContactData", method = RequestMethod.POST, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	ExtJSResponse saveContactData(@RequestParam(required = false) Long contactId,  
+			@RequestParam(required = false) Long accountId,
+			@RequestParam String contactNumber, 
+			@RequestParam String firstName, @RequestParam String middelName,
+			@RequestParam String lastName, @RequestParam(required = false) String dateOfBirth,
+			@RequestParam Long department, @RequestParam String title,
+			@RequestParam(required = false) String contactStartDate,
+			@RequestParam(required = false) String contactEndDate, @RequestParam String emailId,
+			@RequestParam String otherEmailId, @RequestParam String telephone,
+			@RequestParam String mobile, @RequestParam String fax,
+			@RequestParam String linkedinId, @RequestParam String facebookId,
+			@RequestParam Long lvcontacttypeId,
+			@RequestParam Long lvsalutationId, @RequestParam Long lvgenderId,
+			@RequestParam Long lvmaritalstatusId,
+			@RequestParam(required = false) Long lvlanguageId,
+//			@RequestParam(required = false) String accountNumber,
+			@RequestParam(required = false) String accountName)
+			throws ParseException, FileNotFoundException, IOException, MessagingException {
+
+		System.out.println("In createContactData>>>>>>>>>>>>>>>>>>>>>>>>>>>contactId="+contactId );		
+		String key = new RandomKeyGeneration().getRandomGeneration();
+		DateFormat df1 = new SimpleDateFormat("MM/dd/yyyy"); 
+		String message;	
+	    Contact contact;
+		if (contactId == null) {
+			contact = new Contact();
+			System.out.println("============creating new============");
+						
+			contact.setCreatedAt( CustomDateUtil.getDateAndTime() );  
+			contact.setModifiedAt(CustomDateUtil.getDateAndTime() ); 			  					        
+		} else {
+			contact = this.contactRepository.findOne(contactId);
+			System.out.println("========updating=========" + contactId);
+			contact.setModifiedAt(CustomDateUtil.getDateAndTime() ); 	
+		}
+		contact.setContactNumber(contactNumber);  
+		contact.setFirstName(firstName);
+		contact.setMiddelName(middelName);
+		contact.setLastName(lastName); 
+		contact.setContactName(firstName.concat(" "+lastName));
+		if( !dateOfBirth.isEmpty()  ){
+		contact.setDateOfBirth(new Date(df1.parse(dateOfBirth).getTime())); 
+		}
+		if(department!=null ){
+		contact.setContactGroup(contactGroupRepository.findOne(department));
+		}
+		contact.setTitle(title);	
+		
+		if(!contactStartDate.isEmpty()  ){
+		contact.setContactStartDate(new Date(df1.parse(contactStartDate).getTime()));
+		}
+		if(!contactEndDate.isEmpty()  ){
+		contact.setContactEndDate(new Date(df1.parse(contactEndDate).getTime()));
+		}
+		contact.setEmailId(emailId);
+		contact.setOtherEmailId(otherEmailId);
+		contact.setTelephone(telephone);
+		contact.setMobile(mobile);
+		contact.setFax(fax);
+		contact.setLinkedinId(linkedinId);
+		contact.setFacebookId(facebookId);
+
+		if ((lvlanguageId != null) && (lvlanguageId > 0)) {
+			ListValues listValuesByLanguage = listValuesRepository.findOne(lvlanguageId);
+			contact.setListValuesByLanguageId(listValuesByLanguage);
+		} else {
+			contact.setListValuesByLanguageId(null);
+		}
+
+		if ((lvmaritalstatusId != null) && (lvmaritalstatusId > 0)) {
+			ListValues listValuesByMaritalStatus = listValuesRepository.findOne(lvmaritalstatusId);
+			contact.setListValuesByMaritalStausId(listValuesByMaritalStatus);
+		} else {
+			contact.setListValuesByMaritalStausId(null);
+		}
+
+		if ((lvgenderId != null) && (lvgenderId > 0)) {
+			ListValues listValuesByGender = listValuesRepository.findOne(lvgenderId);
+			contact.setListValuesByGenderId(listValuesByGender);
+		} else {
+			contact.setListValuesByGenderId(null);
+		}
+
+		if ((lvsalutationId != null) && (lvsalutationId > 0)) {
+			ListValues listValuesBySalutation = listValuesRepository.findOne(lvsalutationId);
+			contact.setListValuesBySalulationId(listValuesBySalutation);
+		} else {
+			contact.setListValuesBySalulationId(null);
+		}
+
+		if ((lvcontacttypeId != null) && (lvcontacttypeId > 0)) {
+			ListValues listValuesByContactType = listValuesRepository.findOne(lvcontacttypeId);
+			contact.setListValues(listValuesByContactType);
+		} else {
+			contact.setListValues(null);
+		}
+
+		Account account = null;		
+		if (accountId != null) {
+			account = accountRepository.findOne(accountId);
+		}
+
+		System.out.println("lvcontacttype------------>" + lvcontacttypeId);
+		System.out.println("lvsalutation------------>" + lvsalutationId);
+		System.out.println("lvgender----------------->" + lvgenderId);
+		System.out.println("lvmaritalstatus---------->" + lvmaritalstatusId);
+		System.out.println("lvlanguage-------------->" + lvlanguageId);
+		System.out.println("Department -------------->" + department);	
+		System.out.println("accountName---------->"+accountName);			
+		contact.setAccount(account);	
+		
+		if(contactId==null ){          			
+		    message= MessagesUtil.showMessage("Contact", contactNumber,  "Created" , "Successfully" ) ;			
+		}else{					
+			message= MessagesUtil.showMessage("Contact", contactNumber,  "Updated" , "Successfully" ) ;
+		}
+		
+		Contact newContact = contactService.saveContact(contact);	
+		try{
+		mailService.sendEmaildata(newContact.getContactNumber(),"Contact");		
+		}catch(Exception e){		    	
+		   return new ExtJSResponse(true , newContact, message ); 
+	    }
+		return new ExtJSResponse(true , newContact, message ); 
+	}
+
+	@RequestMapping(value = "{contactId}/editContactReport", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	Contact EditContactReport(@PathVariable Long contactId) {
+
+		System.out.println("Inside EditContactReport ==============================================>");
+		System.out.println("contact id===========>>>>>>>>>>>>>>>" + contactId);
+		Contact contact = contactService.findById(contactId);
+		if(contact.getAccount()!=null){
+		contact.setContactAccountId(contact.getAccount());
+		}
+		return contact;
+
+	}
+
+	@RequestMapping(value = "/editContactReportOnLoad", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	Contact editContactReportOnLoad() throws FileNotFoundException, IOException {
+
+		System.out.println("Inside EditContactReport ==============================================>");
+		String key = new RandomKeyGeneration().getRandomGeneration();
+		Contact contact = new Contact();
+		contact.setContactNumber(key); 
+		return contact;
+
+	}
+
+	@RequestMapping(value = "/editContactDetails/{contactId}", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	Contact editContactDetails(@PathVariable Long contactId,
+			@RequestParam(required = false) String firstName,
+			@RequestParam(required = false) String middelName,
+			@RequestParam(required = false) String lastName,
+			@RequestParam(required = false) String dateOfBirth,
+			@RequestParam(required = false) String department,
+			@RequestParam(required = false) String title,
+			@RequestParam(required = false) String contactStartDate,
+			@RequestParam(required = false) String contactEndDate,
+			@RequestParam(required = false) String emailId,
+			@RequestParam(required = false) String otherEmailId,
+			@RequestParam(required = false) String telephone,
+			@RequestParam(required = false) String mobile,
+			@RequestParam(required = false) String fax,
+			@RequestParam(required = false) String linkedinId,
+			@RequestParam(required = false) String facebookId,
+			@RequestParam(required = false) Long lvcontacttypeId,
+			@RequestParam(required = false) Long lvsalutationId,
+			@RequestParam(required = false) Long lvgenderId,
+			@RequestParam(required = false) Long lvmaritalstatusId,
+			@RequestParam(required = false) Long lvlanguageId)
+			throws ParseException {
+
+		System.out.println("In editContactDetails>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+
+		Contact updatedContact = this.contactRepository.findOne(contactId);
+
+		updatedContact.setFirstName(firstName);
+		updatedContact.setMiddelName(middelName);
+		updatedContact.setLastName(lastName);
+
+		updatedContact
+				.setDateOfBirth(new Date(df.parse(dateOfBirth).getTime()));
+
+		updatedContact.setContactGroup(contactGroupRepository.findOne(Long.parseLong(department)));
+		updatedContact.setTitle(title);
+		updatedContact.setContactStartDate(new Date(df.parse(contactStartDate)
+				.getTime()));
+		updatedContact.setContactEndDate(new Date(df.parse(contactEndDate)
+				.getTime()));
+		updatedContact.setEmailId(emailId);
+		updatedContact.setOtherEmailId(otherEmailId);
+		updatedContact.setTelephone(telephone);
+		updatedContact.setMobile(mobile);
+		updatedContact.setFax(fax);
+		updatedContact.setLinkedinId(linkedinId);
+		updatedContact.setFacebookId(facebookId);
+
+		if (lvlanguageId != null/* && lvlanguage > 0 */) {
+			ListValues listValuesByLanguage = listValuesRepository
+					.findOne(lvlanguageId);
+			updatedContact.setListValuesByLanguageId(listValuesByLanguage);
+		} /*
+		 * else { updatedContact.setListValuesByLanguageId(null); }
+		 */
+
+		if (lvmaritalstatusId != null /* && lvmaritalstatus > 0 */) {
+			ListValues listValuesByMaritalStatus = listValuesRepository
+					.findOne(lvmaritalstatusId);
+			updatedContact
+					.setListValuesByMaritalStausId(listValuesByMaritalStatus);
+		} /*
+		 * else { updatedContact.setListValuesByMaritalStausId(null); }
+		 */
+
+		if (lvgenderId != null /* && lvgender > 0 */) {
+			ListValues listValuesByGender = listValuesRepository
+					.findOne(lvgenderId);
+			updatedContact.setListValuesByGenderId(listValuesByGender);
+		} /*
+		 * else { updatedContact.setListValuesByGenderId(null); }
+		 */
+		if (lvsalutationId != null /* && lvsalutationId > 0 */) {
+			ListValues listValuesBySalutation = listValuesRepository
+					.findOne(lvsalutationId);
+			updatedContact.setListValuesBySalulationId(listValuesBySalutation);
+		} /*
+		 * else { updatedContact.setListValuesBySalulationId(null); }
+		 */
+		if (lvcontacttypeId != null /* && lvcontacttype > 0 */) {
+			ListValues listValuesByContactType = listValuesRepository
+					.findOne(lvcontacttypeId);
+			updatedContact.setListValues(listValuesByContactType);
+		} /*
+		 * else { updatedContact.setListValues(null); }
+		 */
+
+		Contact updateContactDetail = contactService
+				.updateContact(updatedContact);
+
+		return updateContactDetail;
+
+	}
+
+	@RequestMapping(value = "/deleteContactDetails/{contactId}", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	Contact deleteContactDetails(@PathVariable Long contactId,
+			@RequestParam String isActive) {
+		System.out.println("delete contact............." + contactId);
+		Contact updateContact = this.contactRepository.findOne(contactId);
+		updateContact.setIsActive(Boolean.parseBoolean("false"));
+
+		Contact deletedContact = contactService
+				.deleteContactDetail(updateContact);
+
+		return deletedContact;
+	}
+
+	@RequestMapping(value = "/ContactTypes", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> contactType() {
+		return listValuesRepository.findByListValueCategory("Contact Type");
+	}
+
+	@RequestMapping(value = "/Salutation", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> salutation() {
+		return listValuesRepository.findByListValueCategory("Salutation");
+	}
+
+	@RequestMapping(value = "/Gender", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> gender() {
+		return listValuesRepository.findByListValueCategory("Gender");
+	}
+
+	@RequestMapping(value = "/MaritalStatus", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> maritalStatus() {
+		return listValuesRepository.findByListValueCategory("Marital Status");
+	}
+
+	@RequestMapping(value = "/Language", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> language() {
+		return listValuesRepository.findByListValueCategory("Language");
+	}
+
+	@RequestMapping(value = "/Department", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ContactGroup> Department() {
+		// return contactGroupRepository.findByContactGroupName();
+		return contactGroupRepository.findAll();
+	}
+
+	@RequestMapping(value = "/AccountNumber", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Account> AccountNumber() {
+		// return contactGroupRepository.findByContactGroupName();
+		return accountRepository.findAll();
+	}
+	@RequestMapping(value = "/ContactNumber", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Contact> ContactNumber() {
+		return contactRepository.findAll();
+	}
+	
+	@RequestMapping(value = "/editCommonContactOnLoad", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	Contact editCommonContactOnLoad(@RequestParam(required = false) Long accountId) throws FileNotFoundException, IOException {
+
+		System.out.println("Inside EditContactReport ==============================================>");
+		String key = new RandomKeyGeneration().getRandomGeneration();
+		Contact contact = new Contact();
+		if(accountId!=null){
+			contact.setAccount(accountRepository.findOne(accountId));
+		}
+		contact.setContactNumber(key); 
+		return contact;
+	}
+
+	@RequestMapping(value = "/commonContactReport", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Contact> commonContactReport(@RequestParam Long accountId) {		
+		Sort sort= new Sort(Sort.Direction.DESC , "modifiedAt" ); 	
+		List<Contact> keyValueMaps =  contactRepository.getCommonAccountAndDepartment(accountId)  ;  		
+		return keyValueMaps;
+		
+	}
+	
+}
+
+
+
+

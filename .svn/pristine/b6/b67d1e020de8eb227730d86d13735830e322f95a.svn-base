@@ -1,0 +1,96 @@
+package com.seismic.crm.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.seismic.crm.model.Account;
+import com.seismic.crm.model.Contact;
+import com.seismic.crm.repository.AccountRepository;
+import com.seismic.crm.repository.ContactRepository;
+
+@Service
+public class ContactServiceImpl implements ContactService {
+	@Autowired
+	private ContactRepository contactRepository;
+	
+	@Autowired
+	private AccountRepository accountRepository;
+
+	@Override
+	@Transactional
+	public List<Contact> getContactDetails() {
+		return contactRepository.findAll();
+	}
+	
+	
+	@Override
+	@Transactional
+	public List<Contact> getContactDetailsByAccount(Long accountId) {	
+		Account account = accountRepository.findOne(accountId);	 		 		
+		return  contactRepository.findByAccount(account);   
+	}
+	    	
+	
+	@Override
+	@Transactional
+	public Contact saveContact(Contact contact) {
+		System.out.println("created Contact implemented.......................");       
+		return contactRepository.save(contact);
+		
+
+	}
+
+	@Override
+	@Transactional
+	public Contact findById(Long contactId) {
+		return contactRepository.findOne(contactId);
+	}
+
+	@Override
+	@Transactional
+	public Contact updateContact(Contact contact) {
+		Contact updateContact = contactRepository.findOne(contact
+				.getContactId());
+
+		updateContact.setFirstName(contact.getFirstName());
+		updateContact.setMiddelName(contact.getMiddelName());
+		updateContact.setLastName(contact.getLastName());
+		updateContact.setDateOfBirth(contact.getDateOfBirth());
+		updateContact.setContactGroup(contact.getContactGroup());
+		updateContact.setTitle(contact.getTitle());
+		updateContact.setContactStartDate(contact.getContactStartDate());
+		updateContact.setContactEndDate(contact.getContactEndDate());
+		updateContact.setEmailId(contact.getEmailId());
+		updateContact.setOtherEmailId(contact.getOtherEmailId());
+		updateContact.setTelephone(contact.getTelephone());
+		updateContact.setMobile(contact.getMobile());
+		updateContact.setFax(contact.getFax());
+		updateContact.setWebsite(contact.getWebsite());
+		updateContact.setLinkedinId(contact.getLinkedinId());
+		updateContact.setFacebookId(contact.getFacebookId());
+		
+		updateContact.setListValues(contact.getListValues());
+		updateContact.setListValuesBySalulationId(contact.getListValuesBySalulationId());
+		updateContact.setListValuesByGenderId(contact.getListValuesByGenderId());
+		updateContact.setListValuesByMaritalStausId(contact.getListValuesByMaritalStausId());
+		updateContact.setListValuesByLanguageId(contact.getListValuesByLanguageId());
+		
+		System.out.println("Contact Data updated............");
+		return contactRepository.saveAndFlush(updateContact);
+	}
+	
+	@Override
+	@Transactional
+	public Contact deleteContactDetail(Contact contact) {
+		
+		System.out.println("in deleteContactDetail>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+		Contact contactDetail = contactRepository.findOne(contact.getContactId());
+//		contactRepository.delete(contactDetail);
+		contactDetail.setIsActive(Boolean.parseBoolean("false"));
+		return contactDetail;
+	}
+
+}

@@ -1,0 +1,240 @@
+$(document).ready(function () {
+             var theme = getDemoTheme();
+
+             // prepare the data
+             var source =
+            {
+            		 datatype: "json",
+        			 url :basePath2+"commonAlert/getAlerts.json?moduleName="+moduleName+"&moduleId="+moduleId,
+                datafields:
+                [
+                 	{name:'generalAlertsId', type:'string'},
+                 	{name:'generalAlertsFrom',type:'string'},
+					{ name: 'createdAt', type: 'date' },
+					{ name: 'generalAlertsSubject', type: 'string' },
+					{ name: 'generalAlertsBody', type: 'string' },
+					{ name: 'generalAlertsTo', type: 'string' }                       
+                ],
+                updaterow: function (rowid, rowdata, commit) {
+                    // synchronize with the server - send update command   
+                    commit(true);
+                }
+            };
+             var dataAdapter = new $.jqx.dataAdapter(source);
+             var columnCheckBox = null;
+             var updatingCheckState = false;
+             
+             var tooltiprenderer = function (element) {
+                 $(element).jqxTooltip({position: 'mouse', content: $(element).text() });
+             }
+
+             // initialize jqxGrid. Disable the built-in selection.
+            $("#commonalertgrid").jqxGrid(
+            {
+            	source: dataAdapter,
+                theme: theme,
+                showfilterrow: true,
+                filterable: true,
+                pageable: true,
+                sortable: true,
+                columnsresize: true,
+                autoheight: true,
+                altrows: true,
+                /*showstatusbar: true,*/
+				width:1065,
+                columns: [
+                  { text: 'From', editable: false, datafield: 'generalAlertsFrom', width: 200, rendered: tooltiprenderer },
+                  { text: 'Alert Date', editable: false, datafield: 'createdAt', width: 200, rendered: tooltiprenderer },
+                  { text: 'Alert Subject', editable: false, datafield: 'generalAlertsSubject', width: 200, rendered: tooltiprenderer },
+                  { text: 'Description', editable: false, datafield: 'generalAlertsBody',  rendered: tooltiprenderer },
+                  { text: 'Recipient', editable: false, datafield: 'generalAlertsTo',width: 200, rendered: tooltiprenderer}
+                  	  
+               ],
+               renderstatusbar: function (statusbar) {
+                  /* // appends buttons to the status bar.
+                   var container = $("<div style='overflow: hidden; position: relative; margin: 5px;'></div>");
+                   var addButton = $("<div style='float: left; margin-left: 5px;'><img style='position: relative; margin-top: 2px;' src='../../image/add.png'/><span style='margin-left: 4px; position: relative; top: 2px;'>Add</span></div>");
+                   var deleteButton = $("<div style='float: left; margin-left: 5px;'><img style='position: relative; margin-top: 2px;' src='../../image/close.png'/><span style='margin-left: 4px; position: relative; top: 2px;'>Delete</span></div>");
+                   var editButton = $("<div style='float: left; margin-left: 5px;'><img style='position: relative; margin-top: 2px;' src='../../image/miniedit.png'/><span style='margin-left: 4px; position: relative; top: 2px;'>Edit</span></div>");
+                   
+                   container.append(addButton);
+                   container.append(deleteButton);
+                   container.append(editButton);
+         
+                   statusbar.append(container);
+                   addButton.jqxButton({ theme: theme, width: 60, height: 20 });
+                   deleteButton.jqxButton({ theme: theme, width: 65, height: 20 });
+                   editButton.jqxButton({ theme: theme, width: 65, height: 20 });
+                   
+                   // add new row.
+                   addButton.click(function (event) {
+                   	var offset = $("#commonactivitygrid").offset();
+                       $("#jqxwindow6").jqxWindow('open');
+                       $("#jqxwindow6").jqxWindow('move', offset.left + 30, offset.top + 30);
+                   });
+                   
+                   editButton.click(function (event) {
+                       var offset = $("#commonactivitygrid").offset();
+                       $("#jqxwindow6").jqxWindow('open');
+                       $("#jqxwindow6").jqxWindow('move', offset.left + 30, offset.top + 30);
+                   });*/
+               },
+            });
+            
+            $("#commonalertgrid").on('columnresized', function (event) {
+                var column = event.args.columntext;
+                var newwidth = event.args.newwidth
+                var oldwidth = event.args.oldwidth;
+                
+            });
+
+            var updatePageState = function (pagenum) {
+                var datainfo = $("#commonalertgrid").jqxGrid('getdatainformation');
+                var pagenum = datainfo.paginginformation.pagenum;
+                var pagesize = datainfo.paginginformation.pagesize;
+                var startrow = pagenum * pagesize;
+                // select the rows on the page.
+                $("#commonalertgrid").jqxGrid('beginupdate');
+                var checkedItemsCount = 0;
+                for (var i = startrow; i < startrow + pagesize; i++) {
+                    var boundindex = $("#commonalertgrid").jqxGrid('getrowboundindex', i);
+                    var value = $("#commonalertgrid").jqxGrid('getcellvalue', boundindex, 'available');
+                    if (value) checkedItemsCount++;
+                    if (value) {
+                        $("#commonalertgrid").jqxGrid('selectrow', boundindex);
+                    }
+                    else {
+                        $("#commonalertgrid").jqxGrid('unselectrow', boundindex);
+                    }
+                }
+
+                $("#commonalertgrid").jqxGrid('endupdate');
+                if (checkedItemsCount == pagesize) {
+                    columnCheckBox.jqxCheckBox({ checked: true });
+                }
+                else if (checkedItemsCount == 0) {
+                    columnCheckBox.jqxCheckBox({ checked: false });
+                }
+                else {
+                    columnCheckBox.jqxCheckBox({ checked: null });
+                }
+            }
+
+            // update the selection after sort.
+            $("#commonalertgrid").on('sort', function (event) {
+                updatePageState();
+            });
+
+             // update the selection after page change.
+            $("#commonalertgrid").on('pagechanged', function (event) {
+                 updatePageState();
+             });
+
+             // select or unselect rows when a checkbox is checked or unchecked. 
+             $("#commonalertgrid").on('cellvaluechanged', function (event) {
+                 if (event.args.value) {
+                     $("#commonalertgrid").jqxGrid('selectrow', event.args.rowindex);
+                 }
+                 else {
+                     $("#commonalertgrid").jqxGrid('unselectrow', event.args.rowindex);
+                 }
+
+                 // update the state of the column's checkbox. When all checkboxes on the displayed page are checked, we need to check column's checkbox. We uncheck it,
+                 // when there are no checked checkboxes on the page and set it to intederminate state when there is at least one checkbox checked on the page.  
+                 if (columnCheckBox) {
+                     var datainfo = $("#commonalertgrid").jqxGrid('getdatainformation');
+                     var pagesize = datainfo.paginginformation.pagesize;
+                     var pagenum = datainfo.paginginformation.pagenum;
+                     var selectedRows = $("#commonalertgrid").jqxGrid('getselectedrowindexes');
+                     var state = false;
+                     var count = 0;
+                     $.each(selectedRows, function () {
+                         if (pagenum * pagesize <= this && this < pagenum * pagesize + pagesize) {
+                             count++;
+                         }
+                     });
+
+                     if (count != 0) state = null;
+                     if (count == pagesize) state = true;
+                     if (count == 0) state = false;
+                     
+                     updatingCheckState = true;
+                     $(columnCheckBox).jqxCheckBox({ checked: state });
+
+                     updatingCheckState = false;
+                 }
+             });
+             
+             var contextMenu = $("#Menu6").jqxMenu({ width: 200, height: 30, autoOpenPopup: false, mode: 'popup', theme: theme });
+
+             $("#commonalertgrid").on('contextmenu', function () {
+                 return false;
+             });
+ 			
+ 			// handle context menu clicks.
+             $("#Menu6").on('itemclick', function (event) {
+            	 var offset = $("#commonalertgrid").offset();
+                 $("#jqxwindow6").jqxWindow('open');
+                 $("#jqxwindow6").jqxWindow('move', offset.left + 30, offset.top + 30);
+             });
+ 			
+ 			$("#commonalertgrid").on('rowclick', function (event) {
+                 if (event.args.rightclick) {
+                     $("#commonalertgrid").jqxGrid('selectrow', event.args.rowindex);
+                     var scrollTop = $(window).scrollTop();
+                     var scrollLeft = $(window).scrollLeft();
+                     contextMenu.jqxMenu('open', parseInt(event.args.originalEvent.clientX) + 5 + scrollLeft, parseInt(event.args.originalEvent.clientY) + 5 + scrollTop);
+
+                     return false;
+                 }
+             });
+ 			
+ 			 $('#commonalertgrid').on('rowdoubleclick', function (event) {
+ 			     // event.args.rowindex is a bound index.
+ 			     /*alert("Row with bound index: " + event.args.rowindex + " has been double-clicked.");*/
+ 				var offset = $("#commonalertgrid").offset();
+                $("#jqxwindow6").jqxWindow('open');
+                $("#jqxwindow6").jqxWindow('move', offset.left + 30, offset.top + 30);
+                
+                
+
+                var args = event.args;
+                var rowindex = $("#commonalertgrid").jqxGrid('getselectedrowindex');
+                editrow = rowindex;
+                 var rowid = $("#commonalertgrid").jqxGrid('getrowid', rowindex);
+                 var dataRecord = $("#commonalertgrid").jqxGrid('getrowdata', editrow);
+                 $("#alertfrom").val(dataRecord.generalAlertsFrom);
+                 $("#alertto").val(dataRecord.generalAlertsTo);
+                 $("#alertsubject").val(dataRecord.generalAlertsSubject);
+                 $("#alertdesc").val(dataRecord.generalAlertsBody);
+ 				 
+ 			 });
+ 			
+
+         // create jqxWindow.
+            $("#jqxwindow6").jqxWindow({ resizable: false, draggable:false, isModal:true, modalOpacity:0.7, theme: 'shinyblack', autoOpen: false, width: 600, maxWidth:1200, height: 350 });
+            $("#alertPanel").jqxPanel({ width: 580, height: 300, sizeMode:'fixed'});
+            $("#alertdate").jqxDateTimeInput({width: '200px', height: '25px', theme: theme});
+            $("#alertprior").jqxComboBox({width: '200', height: '25px', theme: theme });
+            $("#alertfrom").jqxInput({  width: 450, height: 25 });
+            $("#alertto").jqxInput({ theme: theme, width: 450, height: 25});
+            $("#alertsubject").jqxInput({ theme: theme, width: 450, height: 25});
+            $("#alertdesc").jqxInput({ theme: theme, width: 450, height: 100});
+            $("#alertsave").jqxButton({ theme: theme, width: '100' });
+            $("#alertcancel").jqxButton({ theme: theme, width: '100' }); 
+            
+            $('#alertsave').on('click', function () {
+                $('#alertForm').jqxValidator('validate');
+            });
+            
+            
+         // initialize validator.
+            $('#alertForm').jqxValidator({
+             rules: [
+                    { input: '#alertsubject', message: 'Subject is required!', action: 'keyup, blur', rule: 'required' },
+                    { input: '#alertdesc', message: 'Field is required!', action: 'keyup, blur', rule: 'required' },
+                    { input: '#alertprior', message: 'Field is required', action: 'keyup, blur', rule: 'required' }], theme: theme
+            });
+             
+         });
+

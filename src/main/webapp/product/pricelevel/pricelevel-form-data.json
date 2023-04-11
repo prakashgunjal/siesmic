@@ -1,0 +1,15 @@
+{
+  "pricelvl": {
+    "prodnme": "proddisnme",
+    "terrnme": "kripa11",
+    "currnme": "vkripa11@sencha.com",
+    "wholesal": "OH1",
+    "retailprice": "OH13",
+    "validfrm": "aaa",
+    "validto": "1233456",
+    "prodwholesalrate": "bbbb",
+	"prodretailrate": "bbbb",
+	"produom": "bbbb",
+	
+  }
+}

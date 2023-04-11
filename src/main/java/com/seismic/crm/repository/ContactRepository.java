@@ -1,0 +1,62 @@
+package com.seismic.crm.repository;
+
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.seismic.crm.bean.KeyValueMap;
+import com.seismic.crm.model.Account;
+import com.seismic.crm.model.Contact;
+import com.seismic.crm.model.ListValues;
+
+public interface ContactRepository extends JpaRepository<Contact, Long> {
+
+	@Query("SELECT s FROM Contact s WHERE s.isActive = true")
+	List<Contact> findByIsActive();
+
+	List<Contact> findByAccount(Account account);
+
+	@Query("select c.contactId as key,c.contactName as value from Contact c join c.account ca where ca.accountId = :accountId")
+	List<KeyValueMap> getContactList(@Param("accountId") Long accountId);
+
+	@Query("select c.contactId as key,c.contactNumber as value from Contact c")
+	List<KeyValueMap> getContactDetails();
+
+	@Query("select c from Contact c where c.firstName = :firstName ")
+	List<Contact> getDepartment(@Param("firstName") String firstName);
+
+	@Query("select  c.contactId as key,c.contactName as value from Contact c where c.contactGroup.contactGroupId =:department")
+	List<KeyValueMap> getContactGroupMembers(
+			@Param("department") Long department);
+
+	@Query("select  c.contactId as key,c.contactName as value from Contact c where c.contactGroup.contactGroupId =:department")
+	List<KeyValueMap> getContactSalesRep(@Param("department") Long department);
+
+	@Query("select  c.contactId as key,c.contactName as value from Contact c join c.account ca where ca.accountId = :accountId and c.contactGroup.contactGroupId IS NULL")
+	List<KeyValueMap> getAccountAndDepartment(@Param("accountId") Long accountId);
+
+	@Query("select   c.contactId as contactId,c.contactName as contactName,c.title as title from Contact c where c.account.accountId IS NULL")
+	List<Contact> getPrimaryContactNameList();
+
+	@Query("select  c from Contact c join c.account ca where ca.accountId = :accountId and c.contactGroup.contactGroupId IS NULL")
+	List<Contact> getCommonAccountAndDepartment(
+			@Param("accountId") Long accountId);
+
+	@Query("select  c from Contact c where (c.account.accountId = :accountId or c.account.accountId IS NULL )and c.contactGroup.contactGroupId IS NULL")
+	List<Contact> getPrimaryCNameByAccountList(
+			@Param("accountId") Long accountId);
+
+	Page<Contact> findByContactNameContainingAndContactNumberContainingAndTitleContainingAndTelephoneContainingAndEmailIdContaining(
+			String cName, String cNumber, String title, String telephone,
+			String emailId, Pageable pageable);
+
+	Page<Contact> findByContactNameContainingAndContactNumberContainingAndTitleContainingAndTelephoneContainingAndEmailIdContainingAndListValues(
+			String cName, String cNumber, String title, String telephone,
+			String emailId, ListValues contactType, Pageable pageable);
+
+}

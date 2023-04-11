@@ -1,0 +1,150 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Insert title here</title>
+<script type="text/javascript">
+		var basePath = "${pageContext.request.contextPath}/";
+	</script>
+</head>
+<body>
+  			
+            <div class="tab-pane active" id="1">
+                <ul>    
+						
+						<li class="list-box submenu"  id="submenu">
+                          <a data-toggle="collapse" data-parent="#submenu" href="#sub1">Business Intelligence<b class="caret"></b></a>
+                        <div id="sub1" class="accordion-body collapse">
+                          <div class="accordion-inner">
+                              <ul>
+                                <li>
+                                		<a href="../businessintelligence/allreports/seismicReports.jsp">Reports</a>   	
+                                </li>
+								<li>						
+										<a href="../businessintelligence/allkpis/allkpi.jsp">KPIs</a>
+								</li>
+								
+                              </ul>							  
+                          </div>
+						  </div>
+						  </li>
+						
+						  
+						   <li class="list-box submenu"  id="submenu">
+                          <a data-toggle="collapse" data-parent="#submenu" href="#sub3">CRM<b class="caret"></b></a>
+                        <div id="sub3" class="accordion-body collapse">
+                          <div class="accordion-inner">
+                              <ul>
+                                <li class=""><a href="${pageContext.request.contextPath}/crm/crm.jsp" ><p>Sales Forms</p></a></li>
+                                <li class=""><a href="${pageContext.request.contextPath}/crm/contacts.jsp"><p>Contacts</p></a></li>
+                                <li class=""><a href="${pageContext.request.contextPath}/crm/accounts.jsp"><p>Accounts</p></a></li>
+                                <li class=""><a href="${pageContext.request.contextPath}/crm/Lead.jsp"><p>Leads</p></a></li>
+                                <li class=""><a href="${pageContext.request.contextPath}/crm/opportunity/viewOpportunities.htm"><p>Opportunities</p></a></li>
+                                <li class=""><a href="${pageContext.request.contextPath}/crm/quotes.jsp"><p>Quotes</p></a></li>
+                                <li class=""><a href="${pageContext.request.contextPath}/crm/salesorder.jsp"><p>Sales Orders</p></a></li>
+                              </ul>
+							  
+                          </div>
+						  </div>
+						  </li>
+						  
+				 <li class="list-box submenu"  id="submenu">
+                          <a data-toggle="collapse" data-parent="#submenu" href="#sub2">Contract Management<b class="caret"></b></a>
+                        <div id="sub2" class="accordion-body collapse">
+                          <div class="accordion-inner">
+                              <ul>
+                                <li class=""><a href="../contractmanagement/contract.jsp"><p>Contract</p></a></li>
+							<!-- 	<li class=""><a href="../contractmanagement/contractrenewal.jsp"><p>Contract Renewal</p></a></li> -->
+                              </ul>
+							  
+                          </div>
+						  </div>
+						  </li> 
+
+				 <li class="list-box submenu"  id="submenu">
+                          <a data-toggle="collapse" data-parent="#submenu" href="#sub5"></i>Inventory Management<b class="caret"></b></a>
+                        <div id="sub5" class="accordion-body collapse">
+                          <div class="accordion-inner">
+                              <ul>
+                                <li class=""><a href="../inventorymanagement/inventoryreceipt.jsp">Inventory Receipt</a></li>
+                                <li class=""><a href="../inventorymanagement/inventorybooking.jsp">Inventory Booking</a></li>
+                                <li class=""><a href="../inventorymanagement/inventoryactualstock.jsp">Inventory Actual Stock</a></li>
+                                <li class=""><a href="../inventorymanagement/inventoryissue.jsp">Inventory Issue</a></li>
+                                <li class=""><a href="../inventorymanagement/purchaseorder.jsp">Purchase Order</a></li>
+                                <li class=""><a href="../inventorymanagement/assetmovement.jsp">Asset Movement</a></li>
+                                <li class=""><a href="../inventorymanagement/warehousedepot.jsp">Warehouse & Depots</a></li> 
+                              </ul>  
+                          </div>
+						  </div>
+						  </li> 
+						   <li class="list-box submenu"  id="submenu">
+                          <a data-toggle="collapse" data-parent="#submenu" href="#sub6">Service Management <b class="caret"></b></a>
+                        <div id="sub6" class="accordion-body collapse">
+                          <div class="accordion-inner">
+                              <ul>
+                                <li class=""><a href="../servicemanagement/servicerequest.jsp"><p>Service Requests</p></a></li>
+								<li class=""><a href="../servicemanagement/project.jsp"><p>Project</p></a></li>
+								<li class=""><a href="../servicemanagement/projectmilestone.jsp"><p>Project Milestone</p></a></li>
+								<li class=""><a href="../servicemanagement/projecttask.jsp"><p>Project Task</p></a></li>
+								<li class=""><a href="../servicemanagement/projectmanagement.jsp"><p>Project Time Sheet</p></a></li>
+								<li class=""><a href="../servicemanagement/expensemanagement.jsp"><p>Expense Management</p></a></li> 
+                              </ul>
+							  
+                          </div>
+						  </div>
+						  </li>
+						<li class="list-box submenu"  id="submenu">
+                          <a data-toggle="collapse" data-parent="#submenu" href="#sub7"></i>Products<b class="caret"></b></a>
+                        <div id="sub7" class="accordion-body collapse">
+                          <div class="accordion-inner">
+                              <ul>
+                                <li class=""><a href="../product/product.jsp">Product</a></li>
+                                <li class=""><a href="../product/productcategory.jsp">Product Category</a></li>
+                                <li class=""><a href="../product/productsubcategory.jsp">Product Sub-category</a></li>
+                                <li class=""><a href="../product/producttype.jsp">Product Type</a></li>
+                                <li class=""><a href="../product/productsubtype.jsp">Product Sub-type</a></li>
+                                <li class=""><a href="../product/productbundle.jsp">Product Bundle</a></li>
+                                <li class=""><a href="../product/pricelevel.jsp">Price Level</a></li>
+                                <li class=""><a href="../product/pricelist.jsp">Price List</a></li> 
+                              </ul>  
+                          </div>
+						  </div>
+						  </li>
+						   <li class="list-box submenu"  id="submenu">
+                          <a data-toggle="collapse" data-parent="#submenu" href="#sub8">System Admin<b class="caret"></b></a>
+                        <div id="sub8" class="accordion-body collapse">
+                          <div class="accordion-inner">
+                              <ul>
+                                <li class=""><a href=""><p>User Management</p></a></li> 
+								<li class=""><a href=""><p>Field Management</p></a></li>  
+								<li class=""><a href=""><p>Audit Trail</p></a></li>  
+								<li class=""><a href=""><p>Open APIs</p></a></li>   
+                              </ul>
+						</div>
+						</div>
+						</li>
+					<!-- 	<li class="list-box submenu"  id="submenu">
+                          <a data-toggle="collapse" data-parent="#submenu" href="#sub9">Create New....<b class="caret"></b></a>
+                        <div id="sub9" class="accordion-body collapse">
+                          <div class="accordion-inner">
+                              <ul>
+                                <li class=""><a href="../commonjsppages/activities/activities.jsp" target="_parent"><p>Activities</p></a></li> 
+								<li class=""><a href=""><p>Alerts</p></a></li>  
+								<li class=""><a href="../commonjsppages/address/address.jsp" target="_parent"><p>Address</p></a></li>  
+								<li class=""><a href=""><p>Upload Documents</p></a></li>
+								<li class=""><a href=""><p>Calls</p></a></li>
+								<li class=""><a href=""><p>Meetings</p></a></li>     
+                              </ul>
+						</div>
+						</div>
+						</li> 
+ -->
+								
+         </ul>
+                            </div>
+                            
+    
+</body>
+</html>

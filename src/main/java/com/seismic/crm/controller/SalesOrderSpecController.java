@@ -1,0 +1,418 @@
+package com.seismic.crm.controller;
+
+import java.sql.Date;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.seismic.crm.model.ListValues;
+import com.seismic.crm.model.Product;
+import com.seismic.crm.model.ProductCategory;
+import com.seismic.crm.model.Question;
+import com.seismic.crm.model.SalesOrder;
+import com.seismic.crm.model.SalesOrderSpecResponse;
+import com.seismic.crm.model.SfSpecActivity;
+import com.seismic.crm.model.SfSpecActivityResponse;
+import com.seismic.crm.model.SoSpecQuestion;
+import com.seismic.crm.model.SoSpecQuestionResponse;
+import com.seismic.crm.model.SoSpecTask;
+import com.seismic.crm.model.SoSpecTaskResponse;
+import com.seismic.crm.repository.ListValuesRepository;
+import com.seismic.crm.repository.ProductCategoryRepository;
+import com.seismic.crm.repository.ProductRepository;
+import com.seismic.crm.repository.SalesOrderProductDetailRepository;
+import com.seismic.crm.repository.SalesOrderRepository;
+import com.seismic.crm.repository.SalesOrderSpecResponseRepository;
+import com.seismic.crm.repository.SfSpecActivityRepository;
+import com.seismic.crm.repository.SfSpecActivityResponseRepository;
+import com.seismic.crm.repository.SoSpecQuestionRepository;
+import com.seismic.crm.repository.SoSpecQuestionResponseRepository;
+import com.seismic.crm.repository.SoSpecTaskRepository;
+import com.seismic.crm.repository.SoSpecTaskResponseRepository;
+//import com.seismic.crm.service.ContactService;
+import com.seismic.crm.service.SalesOrderService;
+import com.seismic.crm.service.SalesOrderSpecService;
+import com.seismic.crm.utils.CustomDateUtil;
+import com.seismic.crm.validation.SalesOderValidator;
+
+@Controller
+@RequestMapping(value = "/salesOrder")
+public class SalesOrderSpecController {
+
+	@Autowired
+	private SalesOrderSpecService salesOrderSpecService;
+	
+	@Autowired
+	private SalesOrderRepository salesOrderRepository;
+	
+	@Autowired
+	private ProductRepository productRepository;
+	
+	@Autowired
+	private ProductCategoryRepository productCategoryRepository;
+	
+	@Autowired
+	private SalesOrderSpecResponseRepository salesOrderSpecificationRepository;
+	
+	@Autowired
+	private SoSpecQuestionRepository soSpecQuestionRepository;
+	
+	@Autowired
+	private SoSpecQuestionResponseRepository soSpecQuestionResponseRepository;
+	
+	@Autowired
+	private SoSpecTaskRepository soSpecTaskRepository;
+	
+	@Autowired
+	private SoSpecTaskResponseRepository soSpecTaskResponseRepository;
+	
+	@Autowired
+	private SfSpecActivityRepository sfSpecActivityRepository;
+	
+	@Autowired
+	private SfSpecActivityResponseRepository sfSpecActivityResponseRepository;
+	
+	@Autowired
+	private SalesOrderProductDetailRepository soProductDetailRepository;
+
+	@Autowired
+	private ListValuesRepository listValuesRepository;
+
+	@Autowired
+	private SalesOrderService salesOrderService;
+
+//	@Autowired
+//	private ContactService contactService;
+
+	@Autowired
+	private SalesOderValidator salesOderValidator;
+
+	@RequestMapping(value = "/{salesOrderId}/specMain", method = RequestMethod.GET)
+	public ModelAndView sample1(@PathVariable Long salesOrderId) {
+		ModelAndView mav = new ModelAndView("specMain");
+		SalesOrder salesOrder = salesOrderService.findById(salesOrderId);
+		mav.addObject("salesOrder", salesOrder);
+		return mav;
+	}
+
+	@RequestMapping(value = "/{salesOrderId}/specifications/{productCategory}/products", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<Product> specProducts(@PathVariable Long salesOrderId, @PathVariable String productCategory) {
+		ListValues lineItemType = listValuesRepository.findByListValueCategoryAndListValueDescription("Line Item Type", "Order Form");
+		ProductCategory pc = productCategoryRepository.findByProductCategory(productCategory);
+		SalesOrder so = salesOrderService.findById(salesOrderId);
+		return productRepository.orderFormProducts(lineItemType, so, pc);
+	}
+
+//	@RequestMapping(value = "/specifications/{category}/questions", method = RequestMethod.GET, produces = "application/json")
+//	@ResponseStatus(HttpStatus.OK)
+//	public @ResponseBody
+//	List<Question> specQuestions(@PathVariable String category) {
+//		ProductCategory productCategory = productCategoryRepository.findByProductCategory(category);
+//		List<Object> list = questionRepository.questions(productCategory);
+//		List<Question> questions = new ArrayList<Question>();
+//		for(Object arrObj:list){
+//			Object[] obj= (Object[]) arrObj;
+//			Question q = new Question();
+//			q.setQuestionId((Long)obj[0]);
+//			q.setQuestionName((String)obj[1]);
+//			questions.add(q);
+//		}
+//		
+////		List<Question> list1 = new ArrayList<Question>(new LinkedHashSet<Question>(list));
+//		return questions;
+//	}
+
+	@RequestMapping(value = "/specifications/{category}/question/{questionId}/tasks", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<SoSpecTask> SpecTasks(@PathVariable String category, @PathVariable Long questionId) {
+		ProductCategory productCategory = productCategoryRepository.findByProductCategory(category);
+//		Question question = questionRepository.findOne(questionId);
+//		List<Task> list = taskRepository.tasks(productCategory, question);
+//		return list;
+		return soSpecTaskRepository.tasks(productCategory, questionId);
+	}
+
+	@RequestMapping(value = "/{salesOrderId}/product/{productId}/specResponses", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List specResponses(@PathVariable Long salesOrderId, @PathVariable Long productId) {
+		Product product = productRepository.findOne(productId);
+		SalesOrder so = salesOrderService.findById(salesOrderId);
+//		List<SoSpecQuestion> questions = salesOrderSpecService.specResponses(salesOrderId, productId);
+//		List<SoSpecQuestion> questions = soSpecQuestionRepository.specResponses(so, product, product.getProductCategory());
+		List<SoSpecQuestion> questions = soSpecQuestionRepository.specQuestions(product.getProductCategory());
+		List<SoSpecQuestion> selQuesWithResps = soSpecQuestionRepository.specResponses(so, product, product.getProductCategory());
+
+		List<Object> jsonList = new ArrayList<Object>();
+
+		for(SoSpecQuestion ques:questions){
+			Map<String, Object> jsonMap = new HashMap<String, Object>();
+			jsonMap.put("salesOrderId", salesOrderId);
+			jsonMap.put("questionId", ques.getQuestionId());
+			jsonMap.put("questionName", ques.getQuestionName());
+			
+			if(selQuesWithResps.contains(ques)){
+				SoSpecQuestion q = selQuesWithResps.get((selQuesWithResps.indexOf(ques)));
+				ques.setSoSpecQuestionResponses(q.getSoSpecQuestionResponses());
+			}
+			else{
+				ques.setSoSpecQuestionResponses(null);
+			}
+			
+			SoSpecQuestionResponse quesResp = null;
+			if((ques.getSoSpecQuestionResponses() == null) || (ques.getSoSpecQuestionResponses().isEmpty())){
+				jsonMap.put("questionResponseId", -1);
+			}
+			else {
+				quesResp = (SoSpecQuestionResponse)ques.getSoSpecQuestionResponses().iterator().next();
+				jsonMap.put("questionResponseId", quesResp.getQuestionResponseId());
+				jsonMap.put("remarks", quesResp.getRemarks());
+			}
+			
+			if((quesResp != null) && (!quesResp.getSoSpecTaskResponses().isEmpty())){
+				List<Long> taskIds = new ArrayList<Long>();
+				String taskNames = "";
+				String activityNames = "";
+				for(SoSpecTaskResponse taskResp:quesResp.getSoSpecTaskResponses()){
+					if((taskResp.getSelectedFlag() != null) && (taskResp.getSelectedFlag() == true)){
+						taskIds.add(taskResp.getSoSpecTask().getTaskId());
+						taskNames = taskNames + "&#8226;&nbsp;" + taskResp.getSoSpecTask().getTaskName() + "<br><br>";
+						activityNames = activityNames + "&#8226;&nbsp;" + taskResp.getSoSpecTask().getTaskName() + "<br>";
+						if(!taskResp.getSfSpecActivityResponses().isEmpty()){
+							for(SfSpecActivityResponse actResp:taskResp.getSfSpecActivityResponses()){
+								if(actResp.getSelectedFlag() == true){
+									activityNames = activityNames + "&nbsp;&raquo;&nbsp;" + actResp.getSfSpecActivity().getActivityName() + "<br>";
+								}
+							}
+							activityNames = activityNames + "<br>";
+						}
+					}
+				}
+//				taskNames = taskNames + "<br>";
+				jsonMap.put("taskIds", taskIds.toString());
+				jsonMap.put("taskNames", taskNames);
+				jsonMap.put("activityNames", activityNames);
+			}
+			jsonList.add(jsonMap);
+		}
+			
+		return jsonList;
+		
+//		Product product = productRepository.findOne(productId);
+//		SalesOrder so = salesOrderService.findById(salesOrderId);
+//		List<SalesOrderSpecResponse> responses = salesOrderSpecificationRepository.specResponses(so, product);
+//		for(SalesOrderSpecResponse specResp:responses){
+//			specResp.setTaskResponseMaps(taskResponseMapRepository.findBySalesOrderSpecResponse(specResp));
+//		}
+//		List<Question> questions = this.specQuestions(product.getProductCategory().getProductCategory());
+//		List<SalesOrderSpecResponse> paddedResponseList = new ArrayList<SalesOrderSpecResponse>();
+//		Long i = -1L;
+//		for(Question q:questions){
+//			Boolean found = false;
+//			for(SalesOrderSpecResponse s:responses){
+//				if(s.getQuestion().getQuestionId() == q.getQuestionId()){
+//					paddedResponseList.add(s);
+//					found = true;
+//					break;
+//				}
+//			}
+//			if(found == false){
+//				SalesOrderSpecResponse s = new SalesOrderSpecResponse();
+//				s.setSoSpecId(i--);
+//				s.setSalesOrder(so);
+//				s.setProduct(product);
+//				s.setQuestion(q);
+//				Task task = new Task();
+//				task.setTaskId(-1);
+//				task.setTaskName("");
+//				paddedResponseList.add(s);
+//			}
+//		}
+//		return paddedResponseList;
+	}
+
+	@RequestMapping(value = "/{salesOrderId}/soSpecQuestionResponse/save", method = RequestMethod.POST, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody SoSpecQuestionResponse updateSpecResponse(@PathVariable Long salesOrderId, 
+			/*@RequestParam Long soSpecQuestionId,*/ @RequestParam Long questionId, @RequestParam String remarks, 
+			@RequestParam Long productId) {
+		SalesOrder so = salesOrderRepository.findOne(salesOrderId);
+		Product product = productRepository.findOne(productId);
+		SoSpecQuestion question = soSpecQuestionRepository.findOne(questionId);
+		SoSpecQuestionResponse quesResponse = soSpecQuestionResponseRepository.getQuestionResponseWithDeps(so, product, product.getProductCategory(), question);
+		if(quesResponse == null){
+			quesResponse = new SoSpecQuestionResponse();
+			quesResponse.setSalesOrder(so);
+			quesResponse.setProduct(product);
+			quesResponse.setSoSpecQuestion(question);
+		}
+		quesResponse.setRemarks(remarks);
+		return soSpecQuestionResponseRepository.save(quesResponse);
+	}
+
+	@Transactional
+	@RequestMapping(value = "/{salesOrderId}/questionResp/{quesRespId}/tasks/save", method = RequestMethod.POST, 
+			consumes = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody Boolean saveSpecTasks(@PathVariable Long salesOrderId, @PathVariable Long quesRespId, 
+			@RequestBody Map<String, Object> reqMap) {
+		Long productId = Long.valueOf(reqMap.get("productId").toString());
+		Long questionId = Long.valueOf(reqMap.get("questionId").toString());
+		List<Object> arrTaskIds = (ArrayList<Object>)reqMap.get("arrTaskIds");
+		SalesOrder so = salesOrderRepository.findOne(salesOrderId);
+		Product product = productRepository.findOne(productId);
+		SoSpecQuestion question = soSpecQuestionRepository.findOne(questionId);
+		
+		SoSpecQuestionResponse quesResp = null;
+		if((quesRespId != null) && (quesRespId > 0)){
+			quesResp = soSpecQuestionResponseRepository.findOne(quesRespId);
+		}
+		else{
+			quesResp = new SoSpecQuestionResponse();
+			quesResp.setSalesOrder(so);
+			quesResp.setProduct(product);
+			
+			quesResp.setSoSpecQuestion(question);
+			quesResp = soSpecQuestionResponseRepository.save(quesResp);
+		}
+		soSpecTaskResponseRepository.unselectTasksRespsOfQuesResp(quesResp);
+		
+		for(Object taskId:arrTaskIds){
+			List<SoSpecTaskResponse> taskResps = soSpecTaskResponseRepository.taskRespByQuesRespAndTaskId(quesResp, Long.valueOf(taskId.toString()));
+			SoSpecTaskResponse rec;
+			if(taskResps.isEmpty()){
+				rec = new SoSpecTaskResponse();
+				rec.setSoSpecTask(soSpecTaskRepository.findOne(Long.valueOf(taskId.toString())));
+				rec.setSoSpecQuestionResponse(quesResp);
+			}
+			else{
+				rec = (SoSpecTaskResponse)taskResps.get(0);
+			}
+			rec.setSelectedFlag(true);
+			soSpecTaskResponseRepository.save(rec);
+		}
+		return true;
+	}
+
+	@RequestMapping(value = "/{salesOrderId}/specifications/questionResponse/{questionResponseId}/activities", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List specActivities(@PathVariable Long questionResponseId) {
+//		ProductCategory productCategory = productCategoryRepository.findByProductCategory(category);
+//		List<SfSpecActivity> list = sfSpecActivityRepository.activitiesWithResponses(questionResponseId);
+		List<SfSpecActivity> list = sfSpecActivityRepository.activitiesWithTasks(questionResponseId);
+		List<SfSpecActivityResponse> actResps = sfSpecActivityRepository.activityResponses(questionResponseId);
+
+		//Prepare list because of json annotations: @JsonBackReference 
+		List<Object> jsonList = new ArrayList<Object>();
+		for(SfSpecActivity act:list){
+			Map<String, Object> jsonMap = new HashMap<String, Object>();
+			jsonMap.put("taskId", act.getSoSpecTask().getTaskId());
+			jsonMap.put("taskName", act.getSoSpecTask().getTaskName());
+			Boolean respPresent = false;
+			jsonMap.put("activityId", act.getActivityId());
+			jsonMap.put("activityName", act.getActivityName());
+			SoSpecTaskResponse taskResp = act.getSoSpecTask().getSoSpecTaskResponses().iterator().next();
+			jsonMap.put("taskResponseId", taskResp.getTaskResponseId());
+			for(SfSpecActivityResponse resp:actResps){
+				if(resp.getSfSpecActivity().equals(act)){
+					jsonMap.put("activityResponseId", resp.getActivityResponseId());
+					jsonMap.put("activityStartDate", resp.getActivityStartDate());
+					jsonMap.put("activityEndDate", resp.getActivityEndDate());
+					jsonMap.put("selectedFlag", resp.getSelectedFlag());
+					jsonMap.put("assignedTo", resp.getAssignedTo());
+					respPresent = true;
+					break;
+				}
+			}
+			if(respPresent == false){
+				jsonMap.put("activityResponseId", -1L);
+				jsonMap.put("selectedFlag", false);
+			}
+			jsonList.add(jsonMap);
+//			if(act.getSoSpecTask().getSoSpecTaskResponses().isEmpty()){
+//				jsonMap.put("taskResponseId", -1L);
+//			}
+//			else {
+//				jsonMap.put("taskResponseId", 
+//						((SoSpecTaskResponse)act.getSoSpecTask().
+//								getSoSpecTaskResponses().iterator().next()).getTaskResponseId());
+//			}
+//			jsonMap.put("activityId", act.getActivityId());
+//			jsonMap.put("activityName", act.getActivityName());
+//			if(act.getSfSpecActivityResponses().isEmpty()){
+//				jsonMap.put("activityResponseId", -1L);
+//				jsonMap.put("selectedFlag", false);
+//			}
+//			else{
+//				SfSpecActivityResponse actResp = (SfSpecActivityResponse)act.getSfSpecActivityResponses().
+//													iterator().next();
+//				jsonMap.put("activityResponseId", actResp.getActivityResponseId());
+//				jsonMap.put("activityStartDate", actResp.getActivityStartDate());
+//				jsonMap.put("activityEndDate", actResp.getActivityEndDate());
+//				jsonMap.put("selectedFlag", actResp.getSelectedFlag());
+//				jsonMap.put("assignedTo", actResp.getAssignedTo());
+//			}
+//			jsonList.add(jsonMap);
+		}
+
+		return jsonList;
+	}
+
+	@RequestMapping(value = "/{salesOrderId}/specifications/sfSpecActivity/save", method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody SfSpecActivityResponse saveSpecActivity(@PathVariable Long salesOrderId,  
+			@RequestBody Map<String, Object> reqMap) throws ParseException {
+		Long actResponseId = Long.valueOf(reqMap.get("activityResponseId").toString());
+		SfSpecActivityResponse activityResp = null;
+		if((actResponseId != null) && (actResponseId > 0)){
+			activityResp = sfSpecActivityResponseRepository.findOne(actResponseId);
+		}
+		else{
+			activityResp = new SfSpecActivityResponse();
+		}
+		Long activityId = Long.valueOf(reqMap.get("activityId").toString());
+		activityResp.setSfSpecActivity(sfSpecActivityRepository.findOne(activityId));
+		SoSpecTaskResponse taskResponse = soSpecTaskResponseRepository.findOne(Long.valueOf(reqMap.get("taskResponseId").toString()));
+		activityResp.setSoSpecTaskResponse(taskResponse);
+		activityResp.setSelectedFlag(Boolean.valueOf(reqMap.get("selectedFlag").toString()));
+		activityResp.setAssignedTo(reqMap.get("assignedTo").toString());
+		if(reqMap.containsKey("activityStartDate") && (reqMap.get("activityStartDate") != null)){
+			activityResp.setActivityStartDate(CustomDateUtil.getDateFromUniversalDateFmtString(
+					reqMap.get("activityStartDate").toString()));
+		}
+		else {
+			activityResp.setActivityStartDate(null);
+		}
+		if(reqMap.containsKey("activityEndDate") && (reqMap.get("activityEndDate") != null)){
+			activityResp.setActivityEndDate(CustomDateUtil.getDateFromUniversalDateFmtString(
+					reqMap.get("activityEndDate").toString()));
+		}
+		else {
+			activityResp.setActivityEndDate(null);
+		}
+		
+//		return soSpecQuestionRepository.specQuestionWithDeps(so, product, question);
+		return sfSpecActivityResponseRepository.save(activityResp);
+	}
+
+
+}

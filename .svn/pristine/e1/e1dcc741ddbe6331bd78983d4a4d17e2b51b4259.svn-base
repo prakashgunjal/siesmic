@@ -1,0 +1,133 @@
+package com.seismic.crm.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.seismic.crm.model.ChecklistDocument;
+import com.seismic.crm.model.ChecklistMap;
+import com.seismic.crm.model.ChecklistResponse;
+import com.seismic.crm.model.Product;
+import com.seismic.crm.model.ProductCategory;
+import com.seismic.crm.model.Question;
+import com.seismic.crm.model.SalesOrder;
+import com.seismic.crm.model.SoSpecQuestion;
+import com.seismic.crm.model.SoSpecQuestionResponse;
+import com.seismic.crm.model.SoSpecTask;
+import com.seismic.crm.model.SoSpecTaskResponse;
+import com.seismic.crm.model.SpecificationMap;
+import com.seismic.crm.model.SupplierProduct;
+import com.seismic.crm.model.Task;
+
+public interface ChecklistDocumentRepository extends JpaRepository<ChecklistDocument, Long> {
+
+//	@Query(value="SELECT     ChecklistDocument.ChecklistDocumentID, ChecklistDocument.ChecklistDocumentName, ChecklistDocument.ChecklistDocumentSeq, ChecklistDocument.IsActive, "
+//            + "ChecklistDocument.Createdby, ChecklistDocument.CreatedAt, ChecklistDocument.ModifiedBy, ChecklistDocument.ModifiedAt, ChecklistDocument.Remarks, " 
+//            + "ChecklistResponse.ChecklistResponseID, ChecklistResponse.ChecklistResponseSalesOrderID, ChecklistResponse.ChecklistResponseDocumentID, "
+//            + "ChecklistResponse.ChecklistResponseProductCategoryID, ChecklistResponse.ChecklistResponseStatus, ChecklistResponse.ChecklistResponseUserID, " 
+//            + "ChecklistResponse.ChecklistResponseDate, ChecklistResponse.IsActive, ChecklistResponse.Createdby, " 
+//            + "ChecklistResponse.CreatedAt, ChecklistResponse.ModifiedBy, ChecklistResponse.ModifiedAt, " 
+//            + "ChecklistResponse.Remarks "
+//       + "FROM         ChecklistDocument LEFT OUTER JOIN "
+//            + "ChecklistResponse ON ChecklistDocument.ChecklistDocumentID = ChecklistResponse.ChecklistResponseDocumentID INNER JOIN "
+//            + "ChecklistMap ON ChecklistDocument.ChecklistDocumentID = ChecklistMap.ChecklistDocumentID INNER JOIN "
+//            + "ChecklistProductCategory AS ChPrCat ON ChecklistMap.ChecklistProductCategoryID = ChPrCat.ChecklistProductCategoryID LEFT OUTER JOIN "
+//            + "SalesOrder AS so ON ChecklistResponse.ChecklistResponseSalesOrderID = so.SalesOrderID AND so.SalesOrderID = ?1 "
+//			                      
+//+ "WHERE EXISTS "
+//+ "(SELECT     ProductCategory.* "
+//+ "FROM         ChecklistResponse INNER JOIN "
+//            + "SalesOrder AS so1 ON ChecklistResponse.ChecklistResponseSalesOrderID = so1.SalesOrderID INNER JOIN "
+//            + "SalesOrderProductDetail ON so1.SalesOrderID = SalesOrderProductDetail.SalesOrderID INNER JOIN "
+//            + "Product ON SalesOrderProductDetail.SalesOrderProductID = Product.ProductID AND SalesOrderProductDetail.SalesOrderProductID = Product.ProductID INNER JOIN "
+//            + "ProductCategory ON Product.ProductCategoryID = ProductCategory.ProductCategoryID INNER JOIN "
+//            + "ListValues AS li ON SalesOrderProductDetail.SalesOrderLineItem = li.ListValueID "
+//+ "WHERE  so1.SalesOrderID = ?1 AND li.ListValueCategory = 'Line Item Type' AND li.ListValue_SubCategory = 'Order Form') "
+//+ "ORDER BY ChPrCat.ChecklistProductCategorySeq ASC, ChecklistDocument.ChecklistDocumentSeq ASC ", nativeQuery = true)
+//public List<ChecklistDocument> docWithResponses(SalesOrder salesOrder);	
+//
+//	@Query(value="SELECT     ChecklistDocument.ChecklistDocumentID, ChecklistDocument.ChecklistDocumentName, ChecklistDocument.ChecklistDocumentSeq, ChecklistDocument.IsActive, "
+//            + "ChecklistDocument.Createdby, ChecklistDocument.CreatedAt, ChecklistDocument.ModifiedBy, ChecklistDocument.ModifiedAt, ChecklistDocument.Remarks, " 
+//            + "ChecklistResponse.ChecklistResponseID, ChecklistResponse.ChecklistResponseSalesOrderID, ChecklistResponse.ChecklistResponseDocumentID, "
+//            + "ChecklistResponse.ChecklistResponseProductCategoryID, ChecklistResponse.ChecklistResponseStatus, ChecklistResponse.ChecklistResponseUserID, " 
+//            + "ChecklistResponse.ChecklistResponseDate, ChecklistResponse.IsActive, ChecklistResponse.Createdby, " 
+//            + "ChecklistResponse.CreatedAt, ChecklistResponse.ModifiedBy, ChecklistResponse.ModifiedAt, " 
+//            + "ChecklistResponse.Remarks "
+//       + "FROM         ChecklistDocument LEFT OUTER JOIN "
+//            + "ChecklistResponse ON ChecklistDocument.ChecklistDocumentID = ChecklistResponse.ChecklistResponseDocumentID INNER JOIN "
+//            + "ChecklistMap ON ChecklistDocument.ChecklistDocumentID = ChecklistMap.ChecklistDocumentID INNER JOIN "
+//            + "ChecklistProductCategory AS ChPrCat ON ChecklistMap.ChecklistProductCategoryID = ChPrCat.ChecklistProductCategoryID LEFT OUTER JOIN "
+//            + "SalesOrder AS so ON ChecklistResponse.ChecklistResponseSalesOrderID = so.SalesOrderID AND so.SalesOrderID = ?1 "
+//			                      
+//+ "WHERE EXISTS "
+//+ "(SELECT     ProductCategory.* "
+//+ "FROM         ChecklistResponse as resp INNER JOIN "
+//            + "SalesOrder AS so1 ON resp.ChecklistResponseSalesOrderID = so1.SalesOrderID INNER JOIN "
+//            + "SalesOrderProductDetail ON so1.SalesOrderID = SalesOrderProductDetail.SalesOrderID INNER JOIN "
+//            + "Product ON SalesOrderProductDetail.SalesOrderProductID = Product.ProductID AND SalesOrderProductDetail.SalesOrderProductID = Product.ProductID INNER JOIN "
+//            + "ProductCategory ON Product.ProductCategoryID = ProductCategory.ProductCategoryID INNER JOIN "
+//            + "ListValues AS li ON SalesOrderProductDetail.SalesOrderLineItem = li.ListValueID "
+//+ "WHERE  so1.SalesOrderID = ?1 AND li.ListValueCategory = 'Line Item Type' AND li.ListValue_SubCategory = 'Order Form') "
+//+ "ORDER BY ChPrCat.ChecklistProductCategorySeq ASC, ChecklistDocument.ChecklistDocumentSeq ASC ", nativeQuery = true)
+//public List<ChecklistResponse> docWithResponses1(SalesOrder salesOrder);	
+
+//	@Query("SELECT doc FROM ChecklistDocument doc "
+//			/*+ "LEFT JOIN FETCH doc.checklistResponses r ON r.so = ?1 "*/
+//			/*+ "JOIN r.salesOrder rso "*/
+//			+ "LEFT JOIN FETCH doc.checklistProductCategories cpc "
+//			+ "LEFT JOIN FETCH cpc.productCategory "
+//			+ "WHERE EXISTS "
+//			+ "(SELECT so FROM SalesOrder so JOIN so.salesOrderProductDetails pd "
+//			+ "JOIN pd.product prod JOIN pd.lvsoLineItem li "
+//			+ "WHERE so = ?1 AND cpc.productCategory = prod.productCategory AND "
+//			+ "li.listValueCategory = 'Line Item Type' AND li.listValueDescription = 'Order Form') "
+//			/*+ "AND ((r IS NULL) OR (rso = ?1)) "*/
+//			+ "ORDER BY doc.checklistDocumentSeq ASC, cpc.checklistProductCategorySeq ASC ")
+//	public List<ChecklistDocument> documents(SalesOrder salesOrder);	
+
+	@Query("SELECT doc FROM ChecklistDocument doc "
+			/*+ "LEFT JOIN FETCH doc.checklistResponses r ON r.so = ?1 "*/
+			/*+ "JOIN r.salesOrder rso "*/
+			+ "LEFT JOIN FETCH doc.checklistProductCategories cpc "
+			+ "LEFT JOIN FETCH cpc.productCategory "
+			+ "WHERE EXISTS "
+			+ "(SELECT so FROM SalesOrder so JOIN so.salesOrderProductDetails pd "
+			+ "JOIN pd.product prod JOIN pd.lvsoLineItem li "
+			+ "WHERE so = ?1 AND cpc.productCategory = prod.productCategory AND "
+			+ "li.listValueCategory = 'Line Item Type' AND li.listValueDescription = 'Order Form') "
+			/*+ "AND ((r IS NULL) OR (rso = ?1)) "*/
+			+ "ORDER BY doc.checklistDocumentSeq ASC, cpc.checklistProductCategorySeq ASC ")
+	public List<ChecklistDocument> documents(SalesOrder salesOrder);	
+
+	@Query("SELECT doc FROM ChecklistDocument doc "
+			/*+ "LEFT JOIN FETCH doc.checklistResponses r ON r.so = ?1 "*/
+			/*+ "JOIN r.salesOrder rso "*/
+			+ "LEFT JOIN FETCH doc.checklistProductCategories cpc "
+			+ "LEFT JOIN FETCH cpc.productCategory "
+			+ "ORDER BY doc.checklistDocumentSeq ASC, cpc.checklistProductCategorySeq ASC ")
+	public List<ChecklistDocument> allDocuments();	
+
+//	@Query("SELECT doc FROM ChecklistDocument doc "
+//			+ "LEFT JOIN FETCH doc.checklistResponses r "
+//			+ "JOIN r.salesOrder so JOIN so.salesOrderProductDetails pd JOIN pd.lvsoLineItem li "
+//			+ "JOIN pd.product prod "
+//			+ "JOIN doc.checklistProductCategories cat "
+//			+ "WHERE so = ?1 AND cat.productCategory = prod.productCategory "
+//			+ "AND li.listValueCategory = 'Line Item Type' AND li.listValueDescription = 'Order Form' "
+//			+ "ORDER BY doc.checklistDocumentSeq ASC, cat.checklistProductCategorySeq ASC ")
+//	public List<ChecklistDocument> docWithResponses(SalesOrder salesOrder);	
+
+//	@Query("SELECT d FROM ChecklistDocument d LEFT JOIN FETCH d.checklistMaps m "
+//			+ "LEFT JOIN FETCH m.checklistDocument d LEFT JOIN FETCH d.checklist"
+//			+ "tr.soSpecTask t WHERE qr = ?1 AND t.taskId = ?2")
+//	public List<SoSpecTaskResponse> docResponses(SoSpecQuestionResponse quesResponse, Long taskId);	
+//
+//	@Query("SELECT m FROM ChecklistMap m LEFT JOIN FETCH m.checklistProductCategory mcat "
+//			+ "LEFT JOIN FETCH m.checklistDocument d LEFT JOIN FETCH d.checklist"
+//			+ "tr.soSpecTask t WHERE qr = ?1 AND t.taskId = ?2")
+//	public List<SoSpecTaskResponse> mapProductCategories(SoSpecQuestionResponse quesResponse, Long taskId);	
+
+}

@@ -1,0 +1,244 @@
+package com.seismic.crm.controller;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.seismic.crm.bean.KeyValueMap;
+import com.seismic.crm.model.Contact;
+import com.seismic.crm.model.GeneralActivities;
+import com.seismic.crm.model.ListValues;
+import com.seismic.crm.repository.AccountRepository;
+import com.seismic.crm.repository.ContactRepository;
+import com.seismic.crm.repository.GeneralActivityRepository;
+import com.seismic.crm.repository.LeadRepository;
+import com.seismic.crm.repository.ListValuesRepository;
+import com.seismic.crm.repository.OpportunityRepository;
+import com.seismic.crm.repository.QuoteRepository;
+import com.seismic.crm.repository.SalesOrderRepository;
+import com.seismic.crm.service.GeneralActivitiesService;
+import com.seismic.crm.utils.CustomDateUtil;
+import com.seismic.crm.utils.SecurityContextUtil;
+
+@Controller
+@RequestMapping(value = "/generalActivity")
+public class GeneralActivityController {
+
+	@Autowired
+	private GeneralActivitiesService generalActivityService;
+
+	@Autowired
+	private GeneralActivityRepository generalActivityRepository;
+	
+	
+	@Autowired
+	private ContactRepository contactRepository;
+
+	@Autowired
+	private ListValuesRepository listValuesRepository;
+	
+	@Autowired
+	private OpportunityRepository opportunityRepository;
+	
+	@Autowired
+	private LeadRepository leadRepository;
+	
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	@Autowired
+	private SalesOrderRepository salesOrderRepository;
+	
+	@Autowired
+	private QuoteRepository quoteRepository;
+	
+	@Autowired
+	private SecurityContextUtil securityContextUtil;
+	
+	DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+
+	
+	@RequestMapping(value = "/viewGeneralActivityForm", method = RequestMethod.GET)
+	public ModelAndView viewGeneralActivityForm(
+						@RequestParam String documentId
+						,@RequestParam String moduleName){
+		 ModelAndView view = new ModelAndView("commonjsppages/activities/activities");
+		 
+		 return view;
+		
+	}
+	
+	
+	// Json data
+	@RequestMapping(value = "/generalActivityData", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<GeneralActivities> generalActivityData(
+			@RequestParam(required = false) String moduleId) {
+		
+		List<GeneralActivities> generalActivities = generalActivityService
+				.getGeneralActivitiesDetails(moduleId);
+		return generalActivities;
+	}
+
+	// Json data
+		@RequestMapping(value = "/getRelatedNumber", method = RequestMethod.GET, produces = "application/json")
+		@ResponseStatus(HttpStatus.OK)
+		public @ResponseBody
+		List<KeyValueMap> getRelatedNumber(
+				@RequestParam String relatedName) {
+				
+			List<KeyValueMap> list = new ArrayList<KeyValueMap>();
+			if(relatedName.equals("346")){
+				list=opportunityRepository.getOpportunityDetails();
+			}else if(relatedName.equals("345")){
+				list=leadRepository.getLeadDetails();
+			}else if(relatedName.equals("347")){
+				list=contactRepository.getContactDetails();
+			}else if(relatedName.equals("348")){
+				list=accountRepository.getAccountDetails();
+			}else if(relatedName.equals("349")){
+				list=quoteRepository.getQuoteDetails();
+			}else if(relatedName.equals("350")){
+				list=salesOrderRepository.getSalesOrderDetails();
+			}else if(relatedName.equals("351")){
+			}
+			
+			return list;
+		}
+
+		// Json data
+				@RequestMapping(value = "/getAssignedTo", method = RequestMethod.GET, produces = "application/json")
+				@ResponseStatus(HttpStatus.OK)
+				public @ResponseBody
+				List<KeyValueMap> getAssignedTo() {
+						
+					List<Contact> department =contactRepository.getDepartment(securityContextUtil.getUsername());
+					List<KeyValueMap> keyValues = null;
+					if(department.size()==1){
+						for(Contact contact:department)
+						 keyValues = contactRepository.getContactGroupMembers(contact.getContactGroup().getContactGroupId());	
+					}
+					
+					
+					return keyValues;
+				}
+		
+		
+	@RequestMapping(value = "/saveGeneralActivityData", method = RequestMethod.POST, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	GeneralActivities saveGeneralActivityData(
+			@RequestParam(required = false) Long generalActivityId
+			,@RequestParam String entityNumber
+			,@RequestParam String lvEntityTypeId
+			,@RequestParam String generalActivityAssignedTo
+			,@RequestParam String lvActivityTypeId
+			,@RequestParam String generalActivityStartDate
+			,@RequestParam String generalActivityDescription
+			,@RequestParam String generalActivityEndDate
+			,@RequestParam String generalActivitySubject
+			,@RequestParam String generalActivityStartTime
+			,@RequestParam String generalActivityEndTime
+			)
+			throws Exception {
+
+		System.out
+				.println("In saveGeneralActivityData>>>>>>>>>>>>>>>>>>>>>>>>>>>"+generalActivityId);
+
+		GeneralActivities generalActivities = new GeneralActivities();
+		if (generalActivityId == null) {
+			generalActivities = new GeneralActivities();
+			System.out
+					.println("=========creating new generalActivities============");
+		} else {
+			generalActivities = this.generalActivityRepository
+					.findOne(generalActivityId);
+			System.out.println("========updating generalActivities========="
+					+ generalActivityId);
+		}
+		
+		ListValues listValuesByEntity = listValuesRepository.findOne(Long.parseLong(lvEntityTypeId));
+		generalActivities.setListValuesByGeneralActivityEntityType(listValuesByEntity);
+//		generalActivities.setGeneralActivityEntityName(generalActivityEntityName);
+		generalActivities.setEntityNumber(entityNumber);
+		ListValues listValuesByActivity = listValuesRepository.findOne(Long.parseLong(lvActivityTypeId.toString()));
+		generalActivities.setListValuesByGeneralActivityType(listValuesByActivity);
+		Contact contact= contactRepository.findOne(Long.parseLong(generalActivityAssignedTo.toString()));
+		generalActivities.setContact(contact);
+		
+		generalActivities.setGeneralActivitySubject(generalActivitySubject);
+//		generalActivities.setGeneralActivityDate(new CustomDateUtil().getCustomDateAndTime(generalActivityDate));
+		generalActivities.setGeneralActivityStartDate(new CustomDateUtil().getCustomDateAndTime(generalActivityStartDate));
+		generalActivities.setGeneralActivityStartTime(generalActivityStartTime);
+		generalActivities.setGeneralActivityEndTime(generalActivityEndTime);
+		generalActivities.setGeneralActivityEndDate(new CustomDateUtil().getCustomDateAndTime(generalActivityEndDate));
+		
+		generalActivities.setGeneralActivityDescription(generalActivityDescription);
+		
+		generalActivities.setModifiedAt(new CustomDateUtil().getDateAndTime().toString());
+		generalActivities.setCreatedAt(new CustomDateUtil().getDateAndTime());
+		generalActivities.setCreatedBy(securityContextUtil.getUsername());
+		generalActivities.setModifiedBy(securityContextUtil.getUsername());
+		
+		System.out.println("lvEntityTypeId------------>" + lvEntityTypeId);
+		System.out.println("lvActivityTypeId---------->" + lvActivityTypeId);
+
+		GeneralActivities newGeneralActivities = generalActivityService
+				.saveGeneralActivitiess(generalActivities);
+
+		return null;
+	}
+
+	/*
+	 * @RequestMapping(value = "/EntityType", method = RequestMethod.GET,
+	 * produces = "application/json")
+	 * 
+	 * @ResponseStatus(HttpStatus.OK) public @ResponseBody List<ListValues>
+	 * entityType() { return
+	 * listValuesRepository.findByListValueCategory("EntityType"); }
+	 */
+
+	// this code already written in AddressController class
+
+	@RequestMapping(value = "{generalActivityId}/editGeneralActivityReport", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	GeneralActivities editGeneralActivityReport(
+			@PathVariable Long generalActivityId,
+			@RequestParam(required = false) String entityNumber
+			,@RequestParam(required = false) String listValueDescription) {
+		GeneralActivities generalActivities = null;
+		if(generalActivityId!=null && generalActivityId!=0){
+			generalActivities = generalActivityRepository
+				.findOne(generalActivityId);
+		}else{
+			generalActivities = new GeneralActivities();
+			generalActivities.setEntityNumber(entityNumber);
+			generalActivities.setListValuesByGeneralActivityEntityType(listValuesRepository.findByListValueCategoryAndListValueDescription("Entity Type",listValueDescription));
+		}
+		return generalActivities;
+
+	}
+
+	@RequestMapping(value = "/ActivityType", method = RequestMethod.GET, produces = "application/json")
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody
+	List<ListValues> activityType() {
+		return listValuesRepository.findByListValueCategory("Activity Type");
+	}
+
+}

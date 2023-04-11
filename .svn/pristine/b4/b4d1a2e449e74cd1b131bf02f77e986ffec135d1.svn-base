@@ -1,0 +1,20 @@
+{
+  "servreq": {
+    "servreqaccnme": "proddisnme",
+    "servreqcontrnme": "kripa11",
+    "servreqprodnme": "kripa11",
+    "servreqprodarea": "kripa11",
+    "servreqprodsubarea": "vkripa11@sencha.com",
+    "servreqstatus": "OH1",
+    "servreqprior": "OH13",
+    "servreqdesc": "09/11/2013",
+    "servreqdate": "09/11/2013",
+    "servreqassito": "bbbb",
+	"servreqassidate": "bbbb",
+	"servreqresol": "bbbb",
+	"servreqresoldate": "bbbb",
+	"pricelistqtyfrm": "bbbb",
+	"pricelistqtyto": "bbbb",
+	
+  }
+}

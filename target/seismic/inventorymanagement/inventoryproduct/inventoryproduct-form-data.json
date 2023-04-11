@@ -1,0 +1,24 @@
+{
+  "invenprod": {
+    "prodnme": "proddisnme",
+    "produom": "premiseswingdesc",
+    "prodlocnme": "kripa11",
+    "prodsitenme": "kripa11",
+    "prodprewingnme": "vkripa11@sencha.com",
+    "prodpermislocnme": "OH1",
+    "prodprice": "OH13",
+    "prodvat": "09/11/2013",
+    "prodsaltax": "09/11/2013",
+    "prodservtax": "bbbb",
+	"prodcommrate": "bbbb",
+	"prodqtyinhand": "bbbb",
+	"prodbookqty": "bbbb",
+	"prodtype": "bbbb",
+	"prodmoddate": "bbbb",
+	"prodreorder": "bbbb",
+	"prodserreci": "bbbb",
+	"prodserisrt": "bbbb",
+	"prodseriend": "bbbb",
+	
+  }
+}

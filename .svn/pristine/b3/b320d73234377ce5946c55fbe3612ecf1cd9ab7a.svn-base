@@ -1,0 +1,7 @@
+@import 'coreui.css';
+@import 'bootstrap.min.css';
+/* @import 'bootstrap1.min.css'; */
+@import 'jScrollPane.css';
+@import '../js/colorpicker/css/colorpicker.css';
+
+
